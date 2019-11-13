@@ -1,0 +1,12 @@
+[package]
+name = "textcode"
+version = "0.0.1"
+authors = ["Andrey Dyldin <and@cesbo.com>"]
+description = ""
+documentation = "https://docs.rs/textcode"
+repository = "https://github.com/cesbo/textcode"
+edition = "2018"
+keywords = ["encoding", "unicode", "charset"]
+license = "MIT"
+readme = "README.md"
+
