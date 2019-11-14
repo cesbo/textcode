@@ -1,7 +1,7 @@
 //! ISO 8859 Parser
 //!
 //! 1. Build generator: rustc parser.rs
-//! 2. Launch: ./parser >../../src/charset/iso8859.rs
+//! 2. Launch: ./parser
 
 
 use std::{
@@ -50,7 +50,7 @@ fn read_file<P: AsRef<Path>>(path: P) -> io::Result<()> {
             if n > 0 {
                 println!("");
             }
-            print!("    ");
+            print!("        ");
         } else {
             print!(" ");
         }
@@ -89,11 +89,25 @@ fn main() -> io::Result<()> {
         }
 
         println!("/// {}", i.1);
-        println!("pub static ISO8859_{}: [u16; {}] = [", &i.0, ARR_SIZE);
+        println!("pub mod iso8859_{} {{", &i.0);
+        println!("    use crate::charset::iso6937::{{");
+        println!("        iso6937_encode,");
+        println!("        iso6937_decode,");
+        println!("    }};");
+        println!("");
 
+        println!("    const DATA: [u16; {}] = [", ARR_SIZE);
         read_file(base_path.join(format!("8859-{}.TXT", i.0)))?;
+        println!("");
+        println!("    ];");
 
-        println!("\n];");
+        println!("");
+        println!("    #[inline]");
+        println!("    pub fn encode(src: &str, dst: &mut Vec<u8>) {{ iso6937_encode(src, dst, &DATA) }}");
+        println!("");
+        println!("    #[inline]");
+        println!("    pub fn decode(src: &[u8], dst: &mut String) {{ iso6937_decode(src, dst, &DATA) }}");
+        println!("}}");
     }
 
     Ok(())
