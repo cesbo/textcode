@@ -1,6 +1,6 @@
-pub (crate) fn iso6937_encode(src: &str, dst: &mut Vec<u8>, map: &[u32; 96]) {
+pub (crate) fn iso6937_encode(src: &str, dst: &mut Vec<u8>, map: &[u16; 96]) {
     for c in src.chars() {
-        let c = u32::from(c);
+        let c = u32::from(c) as u16;
         if c <= 0x7F {
             dst.push(c as u8);
         } else if c >= 0xA0 {
@@ -29,7 +29,7 @@ pub (crate) fn iso6937_encode(src: &str, dst: &mut Vec<u8>, map: &[u32; 96]) {
 }
 
 
-pub (crate) fn iso6937_decode(src: &[u8], dst: &mut String, map: &[u32; 96]) {
+pub (crate) fn iso6937_decode(src: &[u8], dst: &mut String, map: &[u16; 96]) {
     for &c in src {
         if c <= 0x7F {
             dst.push(c as char);
@@ -44,7 +44,7 @@ pub (crate) fn iso6937_decode(src: &[u8], dst: &mut String, map: &[u32; 96]) {
 
 
 /// Latin superset of ISO/IEC 6937 with addition of the Euro symbol
-const DATA: [u32; 96] = [
+const DATA: [u16; 96] = [
     0x00a0, 0x00a1, 0x00a2, 0x00a3, 0x20ac, 0x00a5, 0x0000, 0x00a7,
     0x00a4, 0x2018, 0x201c, 0x00ab, 0x2190, 0x2191, 0x2192, 0x2193,
     0x00b0, 0x00b1, 0x00b2, 0x00b3, 0x00d7, 0x00b5, 0x00b6, 0x00b7,
