@@ -19,7 +19,7 @@ const ARR_SIZE: usize = 0xFF - 0x9F;
 
 
 fn read_file<P: AsRef<Path>>(path: P) -> io::Result<()> {
-    let mut arr: Vec<u32> = vec![0x0000; ARR_SIZE];
+    let mut arr: Vec<u16> = vec![0x0000; ARR_SIZE];
 
     let file = File::open(path)?;
 
@@ -41,10 +41,11 @@ fn read_file<P: AsRef<Path>>(path: P) -> io::Result<()> {
         }
         let code = code - 0xA0;
         let unicode = split.next().unwrap();
-        let unicode = u32::from_str_radix(&unicode[2 ..], 16).unwrap();
+        let unicode = u16::from_str_radix(&unicode[2 ..], 16).unwrap();
         arr[code as usize] = unicode;
     }
 
+    println!("    const DATA: [u16; {}] = [", ARR_SIZE);
     for (n, unicode) in arr.iter().enumerate() {
         if (n % 8) == 0 {
             if n > 0 {
@@ -56,6 +57,8 @@ fn read_file<P: AsRef<Path>>(path: P) -> io::Result<()> {
         }
         print!("0x{:04x},", unicode);
     }
+    println!("");
+    println!("    ];");
 
     Ok(())
 }
@@ -96,10 +99,7 @@ fn main() -> io::Result<()> {
         println!("    }};");
         println!("");
 
-        println!("    const DATA: [u32; {}] = [", ARR_SIZE);
         read_file(base_path.join(format!("8859-{}.TXT", i.0)))?;
-        println!("");
-        println!("    ];");
 
         println!("");
         println!("    #[inline]");
