@@ -1030,7 +1030,22 @@ const DATA: [u16; 8178] = [
 
 
 pub fn encode(src: &str, dst: &mut Vec<u8>) {
-    unimplemented!()
+    for c in src.chars() {
+        let c = u32::from(c) as u16;
+        if c <= 0x7F {
+            dst.push(c as u8);
+        } else if c >= 0xA0 {
+            // TODO: without iter()
+            if let Some(v) = DATA.iter().position(|&u| u == c) {
+                let hi = ((v / LO_SIZE) + 0x21) | 0x80;
+                let lo = ((v % LO_SIZE) + 0x21) | 0x80;
+                dst.push(hi as u8);
+                dst.push(lo as u8);
+            } else {
+                dst.push(b'?');
+            }
+        }
+    }
 }
 
 

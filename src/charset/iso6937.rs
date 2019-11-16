@@ -4,6 +4,7 @@ pub (crate) fn iso6937_encode(src: &str, dst: &mut Vec<u8>, map: &[u16; 96]) {
         if c <= 0x7F {
             dst.push(c as u8);
         } else if c >= 0xA0 {
+            // TODO: without iter()
             if let Some(v) = map.iter().position(|&u| u == c) {
                 dst.push((v as u8) + 0xA0);
             } else {

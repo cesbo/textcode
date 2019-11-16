@@ -12,9 +12,9 @@ fn test_gb2312() {
         0xd5, 0xb6, 0xac, 0xb2, 0xd8,
     ];
 
-    // let mut dst: Vec<u8> = Vec::new();
-    // gb2312::encode(u, &mut dst);
-    // assert_eq!(dst.as_slice(), c);
+    let mut dst: Vec<u8> = Vec::new();
+    gb2312::encode(u, &mut dst);
+    assert_eq!(dst.as_slice(), c);
 
     let mut dst = String::new();
     gb2312::decode(c, &mut dst);
