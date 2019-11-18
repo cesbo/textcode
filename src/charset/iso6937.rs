@@ -1,3 +1,6 @@
+//! Latin superset of ISO/IEC 6937 with addition of the Euro symbol
+
+
 use super::data::iso6937::{
     DECODE_MAP,
     HI_MAP,
