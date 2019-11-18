@@ -15,11 +15,12 @@ use std::{
 };
 
 
-const ARR_SIZE: usize = 0xFF - 0x9F;
+const ARR_SIZE: usize = 0xFF - 0xA0 + 1;
 
 
-fn read_file<P: AsRef<Path>>(path: P) -> io::Result<()> {
-    let mut arr: Vec<u16> = vec![0x0000; ARR_SIZE];
+fn read_file<P: AsRef<Path>>(path: P, part: usize) -> io::Result<()> {
+    let mut arr_decode: Vec<u16> = vec![0x0000; ARR_SIZE];
+    let mut arr_encode: Vec<(u16, u8)> = Vec::new();
 
     let file = File::open(path)?;
 
@@ -39,26 +40,95 @@ fn read_file<P: AsRef<Path>>(path: P) -> io::Result<()> {
         if code < 0xA0 {
             continue;
         }
-        let code = code - 0xA0;
+
         let unicode = split.next().unwrap();
         let unicode = u16::from_str_radix(&unicode[2 ..], 16).unwrap();
-        arr[code as usize] = unicode;
+        arr_encode.push((unicode, code));
+        arr_decode[(code - 0xA0) as usize] = unicode;
     }
 
-    println!("    const DATA: [u16; {}] = [", ARR_SIZE);
-    for (n, unicode) in arr.iter().enumerate() {
+    println!("pub const DECODE_MAP_{}: [u16; {}] = [", part, ARR_SIZE);
+    for (n, unicode) in arr_decode.iter().enumerate() {
         if (n % 8) == 0 {
             if n > 0 {
                 println!("");
             }
-            print!("        ");
+            print!("    ");
         } else {
             print!(" ");
         }
         print!("0x{:04x},", unicode);
     }
     println!("");
-    println!("    ];");
+    println!("];");
+
+    // encode
+
+    arr_encode.sort_by(|a, b| {
+        (a.0).cmp(&b.0)
+    });
+
+    let mut code_map: Vec<u8> = vec![0; 0x100];
+    let mut hi_map: Vec<usize> = vec![0; 0x100];
+
+    let mut hi_byte = 0u8;
+    let mut hi_skip = 0usize;
+
+    for (unicode, code) in arr_encode.iter() {
+        if *unicode == 0 {
+            continue;
+        }
+
+        let hi = (unicode >> 8) as u8;
+        let lo = (unicode & 0xFF) as u8;
+
+        if hi_byte != hi {
+            hi_byte = hi;
+            hi_skip += 1;
+            hi_map[usize::from(hi)] = hi_skip;
+
+            for _ in 0 .. 0x100 {
+                code_map.push(0)
+            }
+        }
+
+        let pos = hi_skip * 0xFF + usize::from(lo);
+        code_map[pos] = *code;
+    }
+
+    println!("");
+    println!("pub const HI_MAP_{}: [usize; {}] = [", part, hi_map.len());
+    for (n, &pos) in hi_map.iter().enumerate() {
+        if (n % 8) == 0 {
+            if n > 0 {
+                println!("");
+            }
+            print!("    ");
+        } else {
+            print!(" ");
+        }
+
+        print!("{},", pos);
+    }
+    println!("");
+    println!("];");
+
+    println!("");
+    println!("pub const ENCODE_MAP_{}: [u8; {}] = [", part, code_map.len());
+    for (n, &code) in code_map.iter().enumerate() {
+        if (n % 8) == 0 {
+            if n > 0 {
+                println!("");
+            }
+            print!("    ");
+        } else {
+            print!(" ");
+        }
+
+        print!("0x{:02x},", code);
+    }
+    println!("");
+    println!("];");
 
     Ok(())
 }
@@ -86,28 +156,12 @@ fn main() -> io::Result<()> {
         (16, "South-Eastern European"),
     ];
 
+    println!("//! File generated with tools/iso8859/parser.rs");
+
     for i in &map {
-        if i.0 > 1 {
-            print!("\n\n");
-        }
-
+        println!("");
         println!("/// {}", i.1);
-        println!("pub mod iso8859_{} {{", &i.0);
-        println!("    use crate::charset::iso6937::{{");
-        println!("        iso6937_encode,");
-        println!("        iso6937_decode,");
-        println!("    }};");
-        println!("");
-
-        read_file(base_path.join(format!("8859-{}.TXT", i.0)))?;
-
-        println!("");
-        println!("    #[inline]");
-        println!("    pub fn encode(src: &str, dst: &mut Vec<u8>) {{ iso6937_encode(src, dst, &DATA) }}");
-        println!("");
-        println!("    #[inline]");
-        println!("    pub fn decode(src: &[u8], dst: &mut String) {{ iso6937_decode(src, dst, &DATA) }}");
-        println!("}}");
+        read_file(base_path.join(format!("8859-{}.TXT", i.0)), i.0)?;
     }
 
     Ok(())
