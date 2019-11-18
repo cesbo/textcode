@@ -79,8 +79,8 @@ fn read_file<P: AsRef<Path>>(path: P) -> io::Result<()> {
         (a.0).cmp(&b.0)
     });
 
-    let mut code_map: Vec<u16> = vec![0; (0x9F - 0x4E + 16) * 0xFF];
-    let mut hi_map: Vec<usize> = vec![0; 0xFF + 1];
+    let mut code_map: Vec<u16> = vec![0; 0x100];
+    let mut hi_map: Vec<usize> = vec![0; 0x100];
 
     let mut hi_byte = 0u8;
     let mut hi_skip = 0usize;
@@ -97,6 +97,10 @@ fn read_file<P: AsRef<Path>>(path: P) -> io::Result<()> {
             hi_byte = hi;
             hi_skip += 1;
             hi_map[usize::from(hi)] = hi_skip;
+
+            for _ in 0 .. 0x100 {
+                code_map.push(0)
+            }
         }
 
         let pos = hi_skip * 0xFF + usize::from(lo);
@@ -121,7 +125,7 @@ fn read_file<P: AsRef<Path>>(path: P) -> io::Result<()> {
     println!("];");
 
     println!("");
-    println!("pub const ENCODE_MAP: [usize; {}] = [", code_map.len());
+    println!("pub const ENCODE_MAP: [u16; {}] = [", code_map.len());
     for (n, &code) in code_map.iter().enumerate() {
         if (n % 8) == 0 {
             if n > 0 {
