@@ -1,3 +1,5 @@
+mod data;
+
 pub mod iso6937;
 
 mod iso8859;

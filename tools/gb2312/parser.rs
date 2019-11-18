@@ -1,7 +1,7 @@
 //! GB2312 Parser
 //!
 //! 1. Build generator: rustc parser.rs
-//! 2. Launch: ./parser
+//! 2. Launch: ./parser >../../src/charset/data/gb2312.rs
 
 
 use std::{
@@ -19,7 +19,9 @@ fn read_file<P: AsRef<Path>>(path: P) -> io::Result<()> {
     let hi_limit = 0x77;
     let hi_size = hi_limit - 0x21 + 1;
     let lo_size = 0x7F - 0x21;
-    let mut arr: Vec<u16> = vec![0; hi_size * lo_size];
+
+    let mut arr_decode: Vec<u16> = vec![0; hi_size * lo_size];
+    let mut arr_encode: Vec<(u16, u16)> = Vec::new();
 
     let file = File::open(path)?;
 
@@ -45,15 +47,18 @@ fn read_file<P: AsRef<Path>>(path: P) -> io::Result<()> {
         let unicode = split.next().unwrap();
         let unicode = u16::from_str_radix(&unicode[2 ..], 16).unwrap();
 
+        arr_encode.push((unicode, code as u16));
+
         let code = ((hi - 0x21) * lo_size) + (lo - 0x21);
-        arr[code as usize] = unicode;
+        arr_decode[code as usize] = unicode;
     }
 
-    println!("const HI_LIMIT: usize = {};", hi_limit);
-    println!("const LO_SIZE: usize = {};", lo_size);
+    println!("pub const HI_LIMIT: usize = {};", hi_limit);
+    println!("pub const LO_SIZE: usize = {};", lo_size);
+
     println!("");
-    println!("const DATA: [u16; {}] = [", arr.len());
-    for (n, &unicode) in arr.iter().enumerate() {
+    println!("pub const DECODE_MAP: [u16; {}] = [", arr_decode.len());
+    for (n, &unicode) in arr_decode.iter().enumerate() {
         if (n % 8) == 0 {
             if n > 0 {
                 println!("");
@@ -68,6 +73,72 @@ fn read_file<P: AsRef<Path>>(path: P) -> io::Result<()> {
     println!("");
     println!("];");
 
+    // encode
+
+    arr_encode.sort_by(|a, b| {
+        (a.0).cmp(&b.0)
+    });
+
+    let mut code_map: Vec<u16> = vec![0; (0x9F - 0x4E + 16) * 0xFF];
+    let mut hi_map: Vec<usize> = vec![0; 0xFF + 1];
+
+    let mut hi_byte = 0u8;
+    let mut hi_skip = 0usize;
+
+    for (unicode, code) in arr_encode.iter() {
+        if *unicode == 0 {
+            continue;
+        }
+
+        let hi = (unicode >> 8) as u8;
+        let lo = (unicode & 0xFF) as u8;
+
+        if hi_byte != hi {
+            hi_byte = hi;
+            hi_skip += 1;
+            hi_map[usize::from(hi)] = hi_skip;
+        }
+
+        let pos = hi_skip * 0xFF + usize::from(lo);
+        code_map[pos] = *code;
+    }
+
+    println!("");
+    println!("pub const HI_MAP: [usize; {}] = [", hi_map.len());
+    for (n, &pos) in hi_map.iter().enumerate() {
+        if (n % 8) == 0 {
+            if n > 0 {
+                println!("");
+            }
+            print!("    ");
+        } else {
+            print!(" ");
+        }
+
+        print!("{},", pos);
+    }
+    println!("");
+    println!("];");
+
+    println!("");
+    println!("pub const ENCODE_MAP: [usize; {}] = [", code_map.len());
+    for (n, &code) in code_map.iter().enumerate() {
+        if (n % 8) == 0 {
+            if n > 0 {
+                println!("");
+            }
+            print!("    ");
+        } else {
+            print!(" ");
+        }
+
+        let code = if code != 0 { code | 0x8080 } else { code };
+
+        print!("0x{:04x},", code);
+    }
+    println!("");
+    println!("];");
+
     Ok(())
 }
 
@@ -77,7 +148,9 @@ fn main() -> io::Result<()> {
     let base_path = base_path.join("data");
 
 
-    println!("/// Simplified Chinese");
+    println!("//! Simplified Chinese");
+    println!("//! File generated with tools/gb2312/parser.rs");
+    println!("");
     read_file(base_path.join("GB2312.TXT"))?;
 
     Ok(())
