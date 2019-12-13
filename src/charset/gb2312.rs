@@ -69,3 +69,29 @@ pub fn decode(src: &[u8], dst: &mut String) {
         }
     }
 }
+
+
+pub fn bound(src: &[u8], limit: usize) -> usize {
+    if limit == 0 || src.len() < limit { return limit; }
+    let mut simple_byte = true;
+    let mut need_end_byte = false;
+    let mut iter = 1;
+
+    for byte in src.iter() {
+        if *byte < 0xA1 {
+            simple_byte = true;
+            need_end_byte = false;
+        } else {
+            simple_byte = false;
+            need_end_byte = !need_end_byte;
+        }
+        if iter >= limit { break; }
+        iter += 1;
+    }
+
+    if simple_byte || !need_end_byte {
+        limit
+    } else {
+        limit - 1
+    }
+}

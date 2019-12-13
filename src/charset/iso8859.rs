@@ -19,6 +19,9 @@ macro_rules! iso8859 {
 
                 #[inline]
                 pub fn decode(src: &[u8], dst: &mut String) { singlechar_decode(src, dst, &$decode_map) }
+
+                #[inline]
+                pub fn bound(_src: &[u8], limit: usize) -> usize { limit }
             }
         )*
     }

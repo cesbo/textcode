@@ -6,3 +6,5 @@ mod iso8859;
 pub use iso8859::*;
 
 pub mod gb2312;
+
+pub mod utf8;

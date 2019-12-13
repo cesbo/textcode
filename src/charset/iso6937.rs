@@ -65,3 +65,6 @@ pub fn encode(src: &str, dst: &mut Vec<u8>) { singlechar_encode(src, dst, &HI_MA
 
 #[inline]
 pub fn decode(src: &[u8], dst: &mut String) { singlechar_decode(src, dst, &DECODE_MAP) }
+
+
+pub fn bound(_src: &[u8], limit: usize) -> usize { limit }

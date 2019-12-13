@@ -10,6 +10,9 @@ fn test_iso6937() {
         0x69, 0x67, 0x6e, 0x2e, 0x20, 0xd5,
     ];
 
+    let bound = iso6937::bound(c, 5);
+    assert_eq!(bound, 5);
+
     let mut dst: Vec<u8> = Vec::new();
     iso6937::encode(u, &mut dst);
     assert_eq!(dst.as_slice(), c);
