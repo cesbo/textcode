@@ -60,11 +60,18 @@ pub (crate) fn singlechar_decode(src: &[u8], dst: &mut String, map: &[u16]) {
 
 
 #[inline]
-pub fn encode(src: &str, dst: &mut Vec<u8>) { singlechar_encode(src, dst, &HI_MAP, &ENCODE_MAP) }
+pub fn encode(src: &str, dst: &mut Vec<u8>) {
+    singlechar_encode(src, dst, &HI_MAP, &ENCODE_MAP)
+}
 
 
 #[inline]
-pub fn decode(src: &[u8], dst: &mut String) { singlechar_decode(src, dst, &DECODE_MAP) }
+pub fn decode(src: &[u8], dst: &mut String) {
+    singlechar_decode(src, dst, &DECODE_MAP)
+}
 
 
-pub fn bound(_src: &[u8], limit: usize) -> usize { limit }
+#[inline]
+pub fn bound(_src: &[u8], limit: usize) -> usize {
+    limit
+}

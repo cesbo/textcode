@@ -1,33 +1,46 @@
+#[inline]
 pub fn encode(src: &str, dst: &mut Vec<u8>) {
-    *dst = src.to_string().into_bytes();
+    let src_slice = src.to_string().into_bytes();
+    dst.extend_from_slice(&src_slice);
 }
 
 
+#[inline]
 pub fn decode(src: &[u8], dst: &mut String) {
-    *dst = String::from_utf8_lossy(src).to_string();
+    dst.push_str(&String::from_utf8_lossy(src));
 }
 
 
 pub fn bound(src: &[u8], limit: usize) -> usize {
-    if limit == 0 || src.len() < limit { return limit; }
-    let mut iter = 1;
-    let mut delta_len = 0;
-
-    for byte in src.iter() {
-        if *byte > 0xC0 || *byte < 0x80 {
-            delta_len = 0;
-        }
-
-        if iter > limit { break; }
-
-        if *byte > 0x80  {
-            delta_len += 1;
-        }
-
-        iter += 1;
+    if limit == 0 || src.len() <= limit {
+        return limit;
     }
 
-    if delta_len >= limit { return 0; }
+    let mut cnt_limit = limit;
+    let mut last_char_len = 0;
 
-    limit - delta_len
+    while cnt_limit > 0 {
+        cnt_limit -= 1;
+        if let Some(byte) = src.get(cnt_limit) {
+            if *byte <= 0x7F {
+                last_char_len = 1; 
+                break;
+            } else if *byte >= 0xF0 {
+                last_char_len = 4;
+                break;
+            } else if *byte >= 0xE0 {
+                last_char_len = 3;
+                break;
+            } else if *byte >= 0xC0 {
+                last_char_len = 2;
+                break;
+            }
+        }
+    }
+
+    if last_char_len + cnt_limit > limit {
+        cnt_limit
+    } else {
+        limit
+    }
 }
