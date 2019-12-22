@@ -79,12 +79,13 @@ pub fn bound(src: &[u8], limit: usize) -> usize {
     let mut cnt_limit = limit;
 
     while cnt_limit > 0 {
-        if let Some(byte) = src.get(cnt_limit - 1) {
-            if *byte < 0xA1 { break; }
-        }
-
+        if src[cnt_limit - 1] < 0xA1 { break; }
         cnt_limit -= 1;
     }
 
-    ((limit - cnt_limit) / 2) * 2 + cnt_limit
+    if (limit - cnt_limit) % 2 == 0 {
+        limit
+    } else {
+        limit - 1
+    }
 }

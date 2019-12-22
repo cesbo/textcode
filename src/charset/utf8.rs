@@ -21,20 +21,18 @@ pub fn bound(src: &[u8], limit: usize) -> usize {
 
     while cnt_limit > 0 {
         cnt_limit -= 1;
-        if let Some(byte) = src.get(cnt_limit) {
-            if *byte <= 0x7F {
-                last_char_len = 1; 
-                break;
-            } else if *byte >= 0xF0 {
-                last_char_len = 4;
-                break;
-            } else if *byte >= 0xE0 {
-                last_char_len = 3;
-                break;
-            } else if *byte >= 0xC0 {
-                last_char_len = 2;
-                break;
-            }
+        if src[cnt_limit] <= 0x7F {
+            last_char_len = 1; 
+            break;
+        } else if (src[cnt_limit] & 0xE0) == 0xC0 {
+            last_char_len = 2;
+            break;
+        } else if (src[cnt_limit] & 0xF0) == 0xE0 {
+            last_char_len = 3;
+            break;
+        } else if (src[cnt_limit] & 0xF8) == 0xF0 {
+            last_char_len = 4;
+            break;
         }
     }
 
