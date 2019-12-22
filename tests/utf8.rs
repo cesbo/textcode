@@ -28,16 +28,16 @@ fn test_utf8() {
 }
 
 #[test]
-fn test_utf8_n_bytes() { 
+fn test_utf8_n_bytes() {
     let u = "n тест😹x";
     //              | n  |     | т         | е         | с         | т         | 😹                    | x   |
     //              | 1  | 2   | 3     4   | 5     6   | 7     8   | 9     10  | 11    12    13    14  | 15  |
     let c: &[u8] = &[0x6e, 0x20, 0xd1, 0x82, 0xd0, 0xb5, 0xd1, 0x81, 0xd1, 0x82, 0xf0, 0x9f, 0x98, 0xb9, 0x78];
-    
+
     let mut dst = String::new();
     utf8::decode(c, &mut dst);
     assert_eq!(u, dst.as_str());
-    
+
     let mut dst = String::new();
     utf8::decode(c, &mut dst);
     assert_eq!(u, dst.as_str());
