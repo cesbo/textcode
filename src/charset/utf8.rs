@@ -12,17 +12,17 @@ pub fn decode(src: &[u8], dst: &mut String) {
 
 
 pub fn bound(src: &[u8], limit: usize) -> usize {
-    if limit == 0 || src.len() <= limit || src[limit] >= 0xC0 || src[limit] <= 0x7F {
+    if limit == 0 || src.len() <= limit {
         return limit;
     }
 
     let mut cnt_limit = limit;
 
     while cnt_limit > 0 {
-        cnt_limit -= 1;
         if src[cnt_limit] <= 0x7F || src[cnt_limit] >= 0xC0 {
             break;
         }
+        cnt_limit -= 1;
     }
     cnt_limit
 }
