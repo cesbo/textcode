@@ -83,9 +83,5 @@ pub fn bound(src: &[u8], limit: usize) -> usize {
         cnt_limit -= 1;
     }
 
-    if (limit - cnt_limit) % 2 == 0 {
-        limit
-    } else {
-        limit - 1
-    }
+    ((limit - cnt_limit) & (std::usize::MAX - 1)) + cnt_limit
 }
