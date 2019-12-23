@@ -1,19 +1,28 @@
+//! UTF-8
+
+
 #[inline]
 pub fn encode(src: &str, dst: &mut Vec<u8>) {
-    let src_slice = src.to_string().into_bytes();
-    dst.extend_from_slice(&src_slice);
+    dst.extend_from_slice(src.as_bytes());
 }
 
 
 #[inline]
 pub fn decode(src: &[u8], dst: &mut String) {
-    dst.push_str(&String::from_utf8_lossy(src));
+    match std::str::from_utf8(src) {
+        Ok(v) => dst.push_str(v),
+        _ => dst.push('�'),
+    }
 }
 
 
 pub fn bound(src: &[u8], limit: usize) -> usize {
-    if limit == 0 || src.len() <= limit {
+    if limit == 0 {
         return limit;
+    }
+
+    if src.len() <= limit {
+        return src.len();
     }
 
     let mut cnt_limit = limit;
@@ -24,5 +33,6 @@ pub fn bound(src: &[u8], limit: usize) -> usize {
         }
         cnt_limit -= 1;
     }
+
     cnt_limit
 }

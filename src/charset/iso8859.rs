@@ -25,8 +25,8 @@ macro_rules! iso8859 {
                 }
 
                 #[inline]
-                pub fn bound(_src: &[u8], limit: usize) -> usize {
-                    limit
+                pub fn bound(src: &[u8], limit: usize) -> usize {
+                    std::cmp::min(src.len(), limit)
                 }
             }
         )*

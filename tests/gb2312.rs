@@ -19,9 +19,9 @@ fn test_gb2312() {
     let mut dst = String::new();
     gb2312::decode(c, &mut dst);
     assert_eq!(u, dst.as_str());
-    
+
     let bound = gb2312::bound(c, 10000);
-    assert_eq!(bound, 10000);
+    assert_eq!(bound, c.len());
 
     let bound = gb2312::bound(c, 10);
     assert_eq!(bound, 9);

@@ -9,7 +9,7 @@ fn test_utf8() {
     let mut dst = String::new();
     utf8::decode(c, &mut dst);
     assert_eq!(u, dst.as_str());
-    
+
     let mut dst = String::new();
     utf8::decode(c, &mut dst);
     assert_eq!(u, dst.as_str());
@@ -23,8 +23,8 @@ fn test_utf8() {
     let bound = utf8::bound(c, 1);
     assert_eq!(bound, 0);
 
-    let bound = utf8::bound(c, 9);
-    assert_eq!(bound, 9);
+    let bound = utf8::bound(c, 10000);
+    assert_eq!(bound, c.len());
 }
 
 #[test]

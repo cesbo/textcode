@@ -36,6 +36,8 @@ pub (crate) fn singlechar_encode(src: &str, dst: &mut Vec<u8>, hi_map: &[usize],
                     0x201F => dst.push(b'"'),
                     /* HORIZONTAL ELLIPSIS */
                     0x2026 => dst.extend_from_slice(b"..."),
+                    /* REPLACEMENT CHARACTER */
+                    0xFFFD => dst.push(b'?'),
                     /* UNKNOWN SYMBOL */
                     _ => dst.push(b'?'),
                 };
@@ -51,7 +53,7 @@ pub (crate) fn singlechar_decode(src: &[u8], dst: &mut String, map: &[u16]) {
             dst.push(c as char);
         } else if c >= 0xA0 {
             match map[c as usize - 0xA0] {
-                0 => dst.push('?'),
+                0 => dst.push('�'),
                 u => dst.push(unsafe { std::char::from_u32_unchecked(u32::from(u)) }),
             };
         }
@@ -72,6 +74,6 @@ pub fn decode(src: &[u8], dst: &mut String) {
 
 
 #[inline]
-pub fn bound(_src: &[u8], limit: usize) -> usize {
-    limit
+pub fn bound(src: &[u8], limit: usize) -> usize {
+    std::cmp::min(src.len(), limit)
 }
