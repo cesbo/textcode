@@ -30,9 +30,24 @@ fn test_utf8() {
 #[test]
 fn test_utf8_n_bytes() {
     let u = "n тест😹x";
-    //              | n  |     | т         | е         | с         | т         | 😹                    | x   |
-    //              | 1  | 2   | 3     4   | 5     6   | 7     8   | 9     10  | 11    12    13    14  | 15  |
-    let c: &[u8] = &[0x6e, 0x20, 0xd1, 0x82, 0xd0, 0xb5, 0xd1, 0x81, 0xd1, 0x82, 0xf0, 0x9f, 0x98, 0xb9, 0x78];
+    let c: &[u8] = &[
+        // 1: 'n'
+        0x6e,
+        // 2: ' '
+        0x20,
+        // 3..4: 'т'
+        0xd1, 0x82,
+        // 5..6: 'е'
+        0xd0, 0xb5,
+        // 7..8: 'с'
+        0xd1, 0x81,
+        // 9..10: 'т'
+        0xd1, 0x82,
+        // 11..14: '😹'
+        0xf0, 0x9f, 0x98, 0xb9,
+        // 15: x
+        0x78]
+    ;
 
     let mut dst = String::new();
     utf8::decode(c, &mut dst);
@@ -59,4 +74,17 @@ fn test_utf8_n_bytes() {
 
     let bound = utf8::bound(c, 15);
     assert_eq!(bound, 15);
+}
+
+#[test]
+fn test_readme() {
+    // "🦀🦀"
+    const UTF8_DATA: &[u8] = &[
+        0xF0, 0x9F, 0xA6, 0x80, 0xF0, 0x9F, 0xA6, 0x80,
+    ];
+
+    use textcode::utf8;
+
+    assert_eq!(utf8::bound(UTF8_DATA, 6), 4);
+    assert_eq!(utf8::bound(UTF8_DATA, 1000), UTF8_DATA.len());
 }

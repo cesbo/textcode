@@ -25,7 +25,8 @@ textcode is a library for text encoding/decoding. Supports next charsets:
 - `iso-8859-16` - South-Eastern European
 - `gb2312` - Simplified Chinese
 
-## Example
+
+Example:
 
 ```rust
 use textcode::iso8859_5;
@@ -40,4 +41,22 @@ assert_eq!(dst.as_slice(), ISO8859_5);
 let mut dst = String::new();
 iso8859_5::decode(ISO8859_5, &mut dst);
 assert_eq!(UTF8, dst.as_str());
+```
+
+## Bound
+
+Method `bound` - calculates bound for defined limit.
+For example UTF-8 string with 2 four-bytes symbols.
+The bound limit is 6 bytes. Method returns 4, because second symbol out of bound.
+
+Example:
+
+```rust
+use textcode::utf8;
+
+// "🦀🦀"
+const UTF8_DATA: &[u8] = &[0xF0, 0x9F, 0xA6, 0x80, 0xF0, 0x9F, 0xA6, 0x80];
+
+assert_eq!(utf8::bound(UTF8_DATA, 6), 4);
+assert_eq!(utf8::bound(UTF8_DATA, 1000), UTF8_DATA.len());
 ```
