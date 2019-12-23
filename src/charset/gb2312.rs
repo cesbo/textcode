@@ -69,3 +69,19 @@ pub fn decode(src: &[u8], dst: &mut String) {
         }
     }
 }
+
+
+pub fn bound(src: &[u8], limit: usize) -> usize {
+    if limit == 0 || src.len() <= limit {
+        return limit;
+    }
+
+    let mut cnt_limit = limit;
+
+    while cnt_limit > 0 {
+        if src[cnt_limit - 1] < 0xA1 { break; }
+        cnt_limit -= 1;
+    }
+
+    ((limit - cnt_limit) & (std::usize::MAX - 1)) + cnt_limit
+}

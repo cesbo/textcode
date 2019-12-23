@@ -15,10 +15,19 @@ macro_rules! iso8859 {
                 };
 
                 #[inline]
-                pub fn encode(src: &str, dst: &mut Vec<u8>) { singlechar_encode(src, dst, &$hi_map, &$encode_map) }
+                pub fn encode(src: &str, dst: &mut Vec<u8>) {
+                    singlechar_encode(src, dst, &$hi_map, &$encode_map)
+                }
 
                 #[inline]
-                pub fn decode(src: &[u8], dst: &mut String) { singlechar_decode(src, dst, &$decode_map) }
+                pub fn decode(src: &[u8], dst: &mut String) {
+                    singlechar_decode(src, dst, &$decode_map)
+                }
+
+                #[inline]
+                pub fn bound(_src: &[u8], limit: usize) -> usize {
+                    limit
+                }
             }
         )*
     }
