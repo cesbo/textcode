@@ -10,9 +10,15 @@ fn test_iso8859_5() {
     iso8859_5::encode(u, &mut dst);
     assert_eq!(dst.as_slice(), c);
 
+    let enc = iso8859_5::encode_to_vec(u);
+    assert_eq!(enc, dst);
+
     let mut dst = String::new();
     iso8859_5::decode(c, &mut dst);
     assert_eq!(u, dst.as_str());
+
+    let dec = iso8859_5::decode_to_string(c);
+    assert_eq!(dec, dst);
 }
 
 
@@ -28,9 +34,15 @@ fn test_iso8859_6() {
     iso8859_6::encode(u, &mut dst);
     assert_eq!(dst.as_slice(), c);
 
+    let enc = iso8859_6::encode_to_vec(u);
+    assert_eq!(enc, dst);
+
     let mut dst = String::new();
     iso8859_6::decode(c, &mut dst);
     assert_eq!(u, dst.as_str());
+
+    let dec = iso8859_6::decode_to_string(c);
+    assert_eq!(dec, dst);
 }
 
 
@@ -43,7 +55,13 @@ fn test_iso8859_11() {
     iso8859_11::encode(u, &mut dst);
     assert_eq!(dst.as_slice(), c);
 
+    let enc = iso8859_11::encode_to_vec(u);
+    assert_eq!(enc, dst);
+
     let mut dst = String::new();
     iso8859_11::decode(c, &mut dst);
     assert_eq!(u, dst.as_str());
+
+    let dec = iso8859_11::decode_to_string(c);
+    assert_eq!(dec, dst);
 }

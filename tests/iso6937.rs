@@ -20,7 +20,13 @@ fn test_iso6937() {
     iso6937::encode(u, &mut dst);
     assert_eq!(dst.as_slice(), c);
 
+    let enc = iso6937::encode_to_vec(u);
+    assert_eq!(enc, dst);
+
     let mut dst = String::new();
     iso6937::decode(c, &mut dst);
     assert_eq!(u, dst.as_str());
+
+    let dec = iso6937::decode_to_string(c);
+    assert_eq!(dst, dec);
 }

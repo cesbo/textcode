@@ -16,6 +16,21 @@ pub fn decode(src: &[u8], dst: &mut String) {
 }
 
 
+#[inline]
+pub fn encode_to_vec(src: &str) -> Vec<u8> {
+    let mut ret = Vec::new();
+    encode(src, &mut ret);
+    ret
+}
+
+
+#[inline]
+pub fn decode_to_string(src: &[u8]) -> String {
+    let mut ret = String::new();
+    decode(src, &mut ret);
+    ret
+}
+
 pub fn bound(src: &[u8], limit: usize) -> usize {
     if limit == 0 {
         return limit;
