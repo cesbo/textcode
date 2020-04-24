@@ -1,6 +1,6 @@
 [package]
 name = "textcode"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Cesbo Developers Team"]
 description = "Text encoding/decoding library. Supports: UTF-8, ISO6937, ISO8859, GB2312"
 documentation = "https://docs.rs/textcode"
