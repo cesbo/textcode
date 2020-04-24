@@ -19,7 +19,7 @@ pub fn encode(src: &str, dst: &mut Vec<u8>) {
             let hi = usize::from(c >> 8);
             let lo = usize::from(c & 0xFF);
 
-            let pos = HI_MAP[hi] * 0xFF + usize::from(lo);
+            let pos = HI_MAP[hi] * 0xFF + lo;
             let code = ENCODE_MAP[pos];
             if code != 0x0000 {
                 dst.push((code >> 8) as u8);
@@ -68,6 +68,20 @@ pub fn decode(src: &[u8], dst: &mut String) {
             dst.push(unsafe { std::char::from_u32_unchecked(c) })
         }
     }
+}
+
+
+pub fn encode_to_vec(src: &str) -> Vec<u8> {
+    let mut ret = Vec::new();
+    encode(src, &mut ret);
+    ret
+}
+
+
+pub fn decode_to_string(src: &[u8]) -> String {
+    let mut ret = String::new();
+    decode(src, &mut ret);
+    ret
 }
 
 

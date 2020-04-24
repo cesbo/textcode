@@ -16,9 +16,15 @@ fn test_gb2312() {
     gb2312::encode(u, &mut dst);
     assert_eq!(dst.as_slice(), c);
 
+    let enc = gb2312::encode_to_vec(u);
+    assert_eq!(dst, enc);
+
     let mut dst = String::new();
     gb2312::decode(c, &mut dst);
     assert_eq!(u, dst.as_str());
+    
+    let dec = gb2312::decode_to_string(c);
+    assert_eq!(dst, dec);
 
     let bound = gb2312::bound(c, 10000);
     assert_eq!(bound, c.len());

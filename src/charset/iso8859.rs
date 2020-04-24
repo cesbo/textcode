@@ -25,6 +25,20 @@ macro_rules! iso8859 {
                 }
 
                 #[inline]
+                pub fn encode_to_vec(src: &str) -> Vec<u8> {
+                    let mut ret = Vec::new();
+                    singlechar_encode(src, &mut ret, &$hi_map, &$encode_map);
+                    ret
+                }
+
+                #[inline]
+                pub fn decode_to_string(src: &[u8]) -> String {
+                    let mut ret = String::new();
+                    singlechar_decode(src, &mut ret, &$decode_map);
+                    ret
+                }
+
+                #[inline]
                 pub fn bound(src: &[u8], limit: usize) -> usize {
                     std::cmp::min(src.len(), limit)
                 }

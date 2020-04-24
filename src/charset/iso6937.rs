@@ -17,7 +17,7 @@ pub (crate) fn singlechar_encode(src: &str, dst: &mut Vec<u8>, hi_map: &[usize],
             let hi = usize::from(c >> 8);
             let lo = usize::from(c & 0xFF);
 
-            let pos = hi_map[hi] * 0xFF + usize::from(lo);
+            let pos = hi_map[hi] * 0xFF + lo;
             let code = map[pos];
 
             if code != 0x0000 {
@@ -70,6 +70,22 @@ pub fn encode(src: &str, dst: &mut Vec<u8>) {
 #[inline]
 pub fn decode(src: &[u8], dst: &mut String) {
     singlechar_decode(src, dst, &DECODE_MAP)
+}
+
+
+#[inline]
+pub fn encode_to_vec(src: &str) -> Vec<u8> {
+    let mut ret = Vec::new();
+    singlechar_encode(src, &mut ret, &HI_MAP, &ENCODE_MAP);
+    ret
+}
+
+
+#[inline]
+pub fn decode_to_string(src: &[u8]) -> String {
+    let mut ret = String::new();
+    singlechar_decode(src, &mut ret, &DECODE_MAP);
+    ret
 }
 
 
