@@ -172,7 +172,7 @@ fn main() {
             hi_skip += 1;
             hi_map[usize::from(hi)] = hi_skip;
 
-            for _ in 0 ..= 0xFF {
+            for _ in 0 .. 0x100 {
                 code_map.push(0)
             }
         }
