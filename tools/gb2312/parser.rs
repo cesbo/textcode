@@ -103,7 +103,7 @@ fn read_file<P: AsRef<Path>>(path: P) -> io::Result<()> {
             }
         }
 
-        let pos = hi_skip * 0xFF + usize::from(lo);
+        let pos = hi_skip * 0x100 + usize::from(lo);
         code_map[pos] = *code;
     }
 

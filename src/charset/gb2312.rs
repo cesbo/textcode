@@ -19,13 +19,24 @@ pub fn encode(src: &str, dst: &mut Vec<u8>) {
             let hi = usize::from(c >> 8);
             let lo = usize::from(c & 0xFF);
 
-            let pos = HI_MAP[hi] * 0xFF + lo;
+            let pos = HI_MAP[hi] * 0x100 + lo;
             let code = ENCODE_MAP[pos];
             if code != 0x0000 {
                 dst.push((code >> 8) as u8);
                 dst.push((code & 0xFF) as u8);
             } else {
-                dst.push(b'?');
+                match c {
+                    /* LEFT/RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK */
+                    0x00AB | 0x00BB => dst.push(b'"'),
+                    /* LEFT/RIGHT SINGLE QUOTATION MARK */
+                    0x2018 | 0x2019 => dst.push(b'\''),
+                    /* LEFT/RIGHT DOUBLE QUOTATION MARK */
+                    0x201C | 0x201D => dst.push(b'"'),
+                    /* HORIZONTAL ELLIPSIS */
+                    0x2026 => dst.extend_from_slice(b"..."),
+                    /* UNKNOWN SYMBOL */
+                    _ => dst.push(b'?'),
+                };
             }
         }
     }
@@ -38,35 +49,37 @@ pub fn decode(src: &[u8], dst: &mut String) {
 
     while skip < size {
         let c = src[skip];
+
         if c <= 0x7F {
             dst.push(c as char);
             skip += 1;
-        } else {
-            skip += 1;
-            if skip >= size {
-                dst.push('?');
-                break;
-            }
-
-            let hi = usize::from(c) & 0x7F;
-            let lo = usize::from(src[skip]) & 0x7F;
-            skip += 1;
-
-            if lo < 0x21 || hi < 0x21 || hi > HI_LIMIT {
-                dst.push('?');
-                continue;
-            }
-
-            let shift = (hi - 0x21) * LO_SIZE + (lo - 0x21);
-            let c = u32::from(DECODE_MAP[shift]);
-
-            if c == 0 {
-                dst.push('?');
-                continue;
-            }
-
-            dst.push(unsafe { std::char::from_u32_unchecked(c) })
+            continue;
         }
+
+        skip += 1;
+        if skip >= size {
+            dst.push('�');
+            break;
+        }
+
+        let hi = usize::from(c) & 0x7F;
+        let lo = usize::from(src[skip]) & 0x7F;
+        skip += 1;
+
+        if lo < 0x21 || hi < 0x21 || hi > HI_LIMIT {
+            dst.push('�');
+            continue;
+        }
+
+        let shift = (hi - 0x21) * LO_SIZE + (lo - 0x21);
+        let c = u32::from(DECODE_MAP[shift]);
+
+        if c == 0 {
+            dst.push('�');
+            continue;
+        }
+
+        dst.push(unsafe { std::char::from_u32_unchecked(c) })
     }
 }
 
@@ -82,27 +95,4 @@ pub fn decode_to_string(src: &[u8]) -> String {
     let mut ret = String::new();
     decode(src, &mut ret);
     ret
-}
-
-
-pub fn bound(src: &[u8], limit: usize) -> usize {
-    if limit == 0 {
-        return limit;
-    }
-
-    if src.len() <= limit {
-        return src.len();
-    }
-
-    let mut cnt_limit = limit;
-
-    while cnt_limit > 0 {
-        let next = cnt_limit - 1;
-        if src[next] < 0xA1 {
-            break;
-        }
-        cnt_limit = next;
-    }
-
-    ((limit - cnt_limit) & !1) + cnt_limit
 }

@@ -20,30 +20,131 @@ const DATA: [u16; 96] = [
 ];
 
 
+const DATA_DIACTRICS: &[(&str, &str)] = &[
+    (   /* 0xC1 */
+        "AEIOUaeiou",
+        "ÀÈÌÒÙàèìòù"
+    ),
+    (   /* 0xC2 */
+        "ACEILNORSUYZacegilnorsuyz",
+        "ÁĆÉÍĹŃÓŔŚÚÝŹáćéģíĺńóŕśúýź"
+    ),
+    (   /* 0xC3 */
+        "ACEGHIJOSUWYaceghijosuwy",
+        "ÂĈÊĜĤÎĴÔŜÛŴŶâĉêĝĥîĵôŝûŵŷ"
+    ),
+    (   /* 0xC4 */
+        "AINOUainou",
+        "ÃĨÑÕŨãĩñõũ"
+    ),
+    (   /* 0xC5 */
+        "AEIOUaeiou",
+        "ĀĒĪŌŪāēīōū"
+    ),
+    (   /* 0xC6 */
+        "AGUagu",
+        "ĂĞŬăğŭ"
+    ),
+    (   /* 0xC7 */
+        "CEGIZcegz",
+        "ĊĖĠİŻċėġż"
+    ),
+    (   /* 0xC8 */
+        "AEIOUYaeiouy",
+        "ÄËÏÖÜŸäëïöüÿ"
+    ),
+    (   /* 0xC9 */
+        "",
+        ""
+    ),
+    (   /* 0xCA */
+        "AUau",
+        "ÅŮåů"
+    ),
+    (   /* 0xCB */
+        "CGKLNRSTcklnrst",
+        "ÇĢĶĻŅŖŞŢçķļņŗşţ"
+    ),
+    (   /* 0xCC */
+        "",
+        ""
+    ),
+    (   /* 0xCD */
+        "OUou",
+        "ŐŰőű"
+    ),
+    (   /* 0xCE */
+        "AEIUaeiu",
+        "ĄĘĮŲąęįų"
+    ),
+    (   /* 0xCF */
+        "CDELNRSTZcdelnrstz",
+        "ČĎĚĽŇŘŠŤŽčďěľňřšťž"
+    ),
+];
+
+
+
 fn main() {
     println!("//! Latin superset of ISO/IEC 6937 with addition of the Euro symbol");
     println!("//! File generated with tools/iso6937/parser.rs");
     println!("");
 
-    let mut arr_encode: Vec<(u16, u8)> = Vec::new();
+    let mut arr_encode: Vec<(u16, u16)> = Vec::new();
 
-    println!("pub const DECODE_MAP: [u16; {}] = [", DATA.len());
-    for (code, &unicode) in DATA.iter().enumerate() {
-        if (code % 8) == 0 {
-            if code > 0 {
+    println!(
+        "pub const DECODE_MAP: [u16; {}] = [",
+        DATA.len() + (DATA_DIACTRICS.len() * usize::from(b'z' - b'A' + 1))
+    );
+
+    let print_code = |count, unicode: u16| {
+        if (count % 8) == 0 {
+            if count > 0 {
                 println!("");
             }
             print!("    ");
         } else {
             print!(" ");
         }
+
         print!("0x{:04x},", unicode);
+    };
+
+    for (count, &unicode) in DATA.iter().enumerate() {
+        print_code(count, unicode);
 
         if unicode != 0 {
-            arr_encode.push((unicode, (code as u8) + 0xA0));
+            arr_encode.push((unicode, (count as u16) + 0x00A0));
         }
     }
     println!("");
+
+    for (cn, pair) in DATA_DIACTRICS.iter().enumerate() {
+        let mut skip = 0;
+
+        let cn: u16 = 0x00C1 + cn as u16;
+        let bytes = pair.0.as_bytes();
+        let chars: Vec<u16> = pair.1.chars().map(|v| v as u32 as u16).collect();
+
+        println!("    /* 0x{:02x} */", cn);
+
+        for (count, n) in (b'A' ..= b'z').enumerate() {
+            let unicode;
+
+            if skip < bytes.len() && n == bytes[skip] {
+                unicode = chars[skip] as u16;
+                arr_encode.push((unicode, (cn << 8) | (n as u16)));
+                skip += 1;
+            } else {
+                unicode = 0u16;
+                arr_encode.push((unicode, 0));
+            }
+
+            print_code(count, unicode);
+        }
+        println!("");
+    }
+
     println!("];");
 
     // encode
@@ -52,14 +153,14 @@ fn main() {
         (a.0).cmp(&b.0)
     });
 
-    let mut code_map: Vec<u8> = vec![0; 0x100];
+    let mut code_map: Vec<u16> = vec![0; 0x100];
     let mut hi_map: Vec<usize> = vec![0; 0x100];
 
     let mut hi_byte = 0u8;
     let mut hi_skip = 0usize;
 
-    for (unicode, code) in arr_encode.iter() {
-        if *unicode == 0 {
+    for &(unicode, code) in arr_encode.iter() {
+        if unicode == 0 {
             continue;
         }
 
@@ -71,13 +172,13 @@ fn main() {
             hi_skip += 1;
             hi_map[usize::from(hi)] = hi_skip;
 
-            for _ in 0 .. 0x100 {
+            for _ in 0 ..= 0xFF {
                 code_map.push(0)
             }
         }
 
-        let pos = hi_skip * 0xFF + usize::from(lo);
-        code_map[pos] = *code;
+        let pos = hi_skip * 0x100 + usize::from(lo);
+        code_map[pos] = code;
     }
 
     println!("");
@@ -98,7 +199,7 @@ fn main() {
     println!("];");
 
     println!("");
-    println!("pub const ENCODE_MAP: [u8; {}] = [", code_map.len());
+    println!("pub const ENCODE_MAP: [u16; {}] = [", code_map.len());
     for (n, &code) in code_map.iter().enumerate() {
         if (n % 8) == 0 {
             if n > 0 {
@@ -109,7 +210,7 @@ fn main() {
             print!(" ");
         }
 
-        print!("0x{:02x},", code);
+        print!("0x{:04x},", code);
     }
     println!("");
     println!("];");

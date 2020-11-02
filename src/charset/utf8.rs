@@ -30,24 +30,3 @@ pub fn decode_to_string(src: &[u8]) -> String {
     decode(src, &mut ret);
     ret
 }
-
-pub fn bound(src: &[u8], limit: usize) -> usize {
-    if limit == 0 {
-        return limit;
-    }
-
-    if src.len() <= limit {
-        return src.len();
-    }
-
-    let mut cnt_limit = limit;
-
-    while cnt_limit > 0 {
-        if src[cnt_limit] <= 0x7F || src[cnt_limit] >= 0xC0 {
-            break;
-        }
-        cnt_limit -= 1;
-    }
-
-    cnt_limit
-}

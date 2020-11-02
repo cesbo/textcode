@@ -27,9 +27,6 @@ fn test_iso8859_6() {
     let u = "مرحبا";
     let c: &[u8] = &[0xe5, 0xd1, 0xcd, 0xc8, 0xc7];
 
-    let bound = iso8859_6::bound(c, 10000);
-    assert_eq!(bound, c.len());
-
     let mut dst: Vec<u8> = Vec::new();
     iso8859_6::encode(u, &mut dst);
     assert_eq!(dst.as_slice(), c);

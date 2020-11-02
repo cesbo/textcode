@@ -1,7 +1,7 @@
 //! ISO 8859 Parser
 //!
 //! 1. Build generator: rustc parser.rs
-//! 2. Launch: ./parser
+//! 2. Launch: ./parser >../../src/charset/data/iso8859.rs
 
 
 use std::{
@@ -92,7 +92,7 @@ fn read_file<P: AsRef<Path>>(path: P, part: usize) -> io::Result<()> {
             }
         }
 
-        let pos = hi_skip * 0xFF + usize::from(lo);
+        let pos = hi_skip * 0x100 + usize::from(lo);
         code_map[pos] = *code;
     }
 

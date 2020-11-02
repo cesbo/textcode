@@ -19,18 +19,6 @@ fn test_utf8() {
 
     let dec = utf8::decode_to_string(c);
     assert_eq!(dec, dst);
-
-    let bound = utf8::bound(c, 5);
-    assert_eq!(bound, 4);
-
-    let bound = utf8::bound(c, 6);
-    assert_eq!(bound, 6);
-
-    let bound = utf8::bound(c, 1);
-    assert_eq!(bound, 0);
-
-    let bound = utf8::bound(c, 10000);
-    assert_eq!(bound, c.len());
 }
 
 #[test]
@@ -68,35 +56,4 @@ fn test_utf8_n_bytes() {
 
     let dec = utf8::decode_to_string(c);
     assert_eq!(dec, dst);
-
-    let bound = utf8::bound(c, 5);
-    assert_eq!(bound, 4);
-
-    let bound = utf8::bound(c, 1);
-    assert_eq!(bound, 1);
-
-    let bound = utf8::bound(c, 10);
-    assert_eq!(bound, 10);
-
-    let bound = utf8::bound(c, 13);
-    assert_eq!(bound, 10);
-
-    let bound = utf8::bound(c, 14);
-    assert_eq!(bound, 14);
-
-    let bound = utf8::bound(c, 15);
-    assert_eq!(bound, 15);
-}
-
-#[test]
-fn test_readme() {
-    // "🦀🦀"
-    const UTF8_DATA: &[u8] = &[
-        0xF0, 0x9F, 0xA6, 0x80, 0xF0, 0x9F, 0xA6, 0x80,
-    ];
-
-    use textcode::utf8;
-
-    assert_eq!(utf8::bound(UTF8_DATA, 6), 4);
-    assert_eq!(utf8::bound(UTF8_DATA, 1000), UTF8_DATA.len());
 }
