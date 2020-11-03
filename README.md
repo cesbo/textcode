@@ -7,7 +7,7 @@
 textcode is a library for text encoding/decoding. Supports next charsets:
 
 - `UTF-8`
-- `iso-6937` - Latin superset of ISO/IEC 6937 with addition of the Euro symbol
+- `iso-6937` - Latin superset of ISO/IEC 6937 with Euro and letters with diacritics
 - `iso-8859-1` - Western European
 - `iso-8859-2` - Central European
 - `iso-8859-3` - South European

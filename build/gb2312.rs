@@ -4,14 +4,18 @@
 //! 2. Launch: ./parser >../../src/charset/data/gb2312.rs
 
 
-use std::{
-    fs::File,
-    io::{
-        self,
-        BufReader,
-        BufRead,
+use {
+    std::{
+        fs::File,
+        io::{
+            self,
+            BufReader,
+            BufRead,
+        },
+        path::Path,
     },
-    path::Path,
+
+    super::push_unicode,
 };
 
 
@@ -53,11 +57,8 @@ fn read_file<P: AsRef<Path>>(path: P) -> io::Result<()> {
         arr_decode[code as usize] = unicode;
     }
 
-    println!("pub const HI_LIMIT: usize = {};", hi_limit);
-    println!("pub const LO_SIZE: usize = {};", lo_size);
-
     println!("");
-    println!("pub const DECODE_MAP: [u16; {}] = [", arr_decode.len());
+    println!("pub const DECODE_MAP_GB2312: [u16; {}] = [", arr_decode.len());
     for (n, &unicode) in arr_decode.iter().enumerate() {
         if (n % 8) == 0 {
             if n > 0 {
@@ -74,6 +75,8 @@ fn read_file<P: AsRef<Path>>(path: P) -> io::Result<()> {
     println!("];");
 
     // encode
+
+    push_unicode(&mut arr_encode);
 
     arr_encode.sort_by(|a, b| {
         (a.0).cmp(&b.0)
@@ -108,7 +111,7 @@ fn read_file<P: AsRef<Path>>(path: P) -> io::Result<()> {
     }
 
     println!("");
-    println!("pub const HI_MAP: [usize; {}] = [", hi_map.len());
+    println!("pub const HI_MAP_GB2312: [usize; {}] = [", hi_map.len());
     for (n, &pos) in hi_map.iter().enumerate() {
         if (n % 8) == 0 {
             if n > 0 {
@@ -125,7 +128,7 @@ fn read_file<P: AsRef<Path>>(path: P) -> io::Result<()> {
     println!("];");
 
     println!("");
-    println!("pub const ENCODE_MAP: [u16; {}] = [", code_map.len());
+    println!("pub const ENCODE_MAP_GB2312: [u16; {}] = [", code_map.len());
     for (n, &code) in code_map.iter().enumerate() {
         if (n % 8) == 0 {
             if n > 0 {
@@ -146,14 +149,12 @@ fn read_file<P: AsRef<Path>>(path: P) -> io::Result<()> {
     Ok(())
 }
 
-fn main() -> io::Result<()> {
+pub fn build() -> io::Result<()> {
     let base_path = std::env::current_exe()?;
     let base_path = base_path.parent().unwrap();
     let base_path = base_path.join("data");
 
-
-    println!("//! Simplified Chinese");
-    println!("//! File generated with tools/gb2312/parser.rs");
+    println!("// Simplified Chinese. File generated with build/gb2312.rs");
     println!("");
     read_file(base_path.join("GB2312.TXT"))?;
 

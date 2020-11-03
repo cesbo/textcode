@@ -14,24 +14,7 @@ fn singlechar_encode(src: &str, dst: &mut Vec<u8>, hi_map: &[usize], map: &[u8])
             if code != 0x0000 {
                 dst.push(code);
             } else {
-                match c {
-                    /* LEFT/RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK */
-                    0x00AB | 0x00BB => dst.push(b'"'),
-                    /* LEFT/RIGHT SINGLE QUOTATION MARK */
-                    0x2018 | 0x2019 => dst.push(b'\''),
-                    /* SINGLE HIGH-REVERSED-9 QUOTATION MARK */
-                    0x201B => dst.push(b'\''),
-                    /* LEFT/RIGHT DOUBLE QUOTATION MARK */
-                    0x201C | 0x201D => dst.push(b'"'),
-                    /* DOUBLE HIGH-REVERSED-9 QUOTATION MARK */
-                    0x201F => dst.push(b'"'),
-                    /* HORIZONTAL ELLIPSIS */
-                    0x2026 => dst.extend_from_slice(b"..."),
-                    /* REPLACEMENT CHARACTER */
-                    0xFFFD => dst.push(b'?'),
-                    /* UNKNOWN SYMBOL */
-                    _ => dst.push(b'?'),
-                };
+                dst.push(b'?');
             }
         }
     }
@@ -56,7 +39,7 @@ macro_rules! iso8859 {
     ( $($name: ident, $decode_map: ident, $hi_map: ident, $encode_map: ident),* ) => {
         $(
             pub mod $name {
-                use crate::data::iso8859::{
+                use crate::data::{
                     $decode_map,
                     $hi_map,
                     $encode_map,

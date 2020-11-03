@@ -4,6 +4,9 @@
 //! 2. Launch: ./parser >../../src/charset/data/iso6937.rs
 
 
+use super::push_unicode;
+
+
 const DATA: [u16; 96] = [
     0x00a0, 0x00a1, 0x00a2, 0x00a3, 0x20ac, 0x00a5, 0x0000, 0x00a7,
     0x00a4, 0x2018, 0x201c, 0x00ab, 0x2190, 0x2191, 0x2192, 0x2193,
@@ -85,15 +88,15 @@ const DATA_DIACTRICS: &[(&str, &str)] = &[
 
 
 
-fn main() {
-    println!("//! Latin superset of ISO/IEC 6937 with addition of the Euro symbol");
-    println!("//! File generated with tools/iso6937/parser.rs");
+pub fn build() -> std::io::Result<()> {
+    println!("// Latin superset of ISO/IEC 6937 with Euro and letters with diacritics");
+    println!("// File generated with build/iso6937.rs");
     println!("");
 
     let mut arr_encode: Vec<(u16, u16)> = Vec::new();
 
     println!(
-        "pub const DECODE_MAP: [u16; {}] = [",
+        "pub const DECODE_MAP_ISO6937: [u16; {}] = [",
         DATA.len() + (DATA_DIACTRICS.len() * usize::from(b'z' - b'A' + 1))
     );
 
@@ -149,6 +152,8 @@ fn main() {
 
     // encode
 
+    push_unicode(&mut arr_encode);
+
     arr_encode.sort_by(|a, b| {
         (a.0).cmp(&b.0)
     });
@@ -182,7 +187,7 @@ fn main() {
     }
 
     println!("");
-    println!("pub const HI_MAP: [usize; {}] = [", hi_map.len());
+    println!("pub const HI_MAP_ISO6937: [usize; {}] = [", hi_map.len());
     for (n, &pos) in hi_map.iter().enumerate() {
         if (n % 8) == 0 {
             if n > 0 {
@@ -199,7 +204,7 @@ fn main() {
     println!("];");
 
     println!("");
-    println!("pub const ENCODE_MAP: [u16; {}] = [", code_map.len());
+    println!("pub const ENCODE_MAP_ISO6937: [u16; {}] = [", code_map.len());
     for (n, &code) in code_map.iter().enumerate() {
         if (n % 8) == 0 {
             if n > 0 {
@@ -214,4 +219,6 @@ fn main() {
     }
     println!("");
     println!("];");
+
+    Ok(())
 }

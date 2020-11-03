@@ -1,10 +1,10 @@
 //! Latin superset of ISO/IEC 6937 with addition of the Euro symbol
 
 
-use super::data::iso6937::{
-    DECODE_MAP,
-    HI_MAP,
-    ENCODE_MAP,
+use crate::data::{
+    DECODE_MAP_ISO6937,
+    HI_MAP_ISO6937,
+    ENCODE_MAP_ISO6937,
 };
 
 
@@ -19,8 +19,8 @@ pub fn encode(src: &str, dst: &mut Vec<u8>) {
             let hi = usize::from(c >> 8);
             let lo = usize::from(c & 0xFF);
 
-            let pos = HI_MAP[hi] * 0x100 + lo;
-            let code = ENCODE_MAP[pos];
+            let pos = HI_MAP_ISO6937[hi] * 0x100 + lo;
+            let code = ENCODE_MAP_ISO6937[pos];
 
             if code > 0xFF {
                 dst.push((code >> 8) as u8);
@@ -28,18 +28,7 @@ pub fn encode(src: &str, dst: &mut Vec<u8>) {
             } else if code > 0 {
                 dst.push(code as u8);
             } else {
-                match c {
-                    /* LEFT/RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK */
-                    0x00AB | 0x00BB => dst.push(b'"'),
-                    /* LEFT/RIGHT SINGLE QUOTATION MARK */
-                    0x2018 | 0x2019 => dst.push(b'\''),
-                    /* LEFT/RIGHT DOUBLE QUOTATION MARK */
-                    0x201C | 0x201D => dst.push(b'"'),
-                    /* HORIZONTAL ELLIPSIS */
-                    0x2026 => dst.extend_from_slice(b"..."),
-                    /* UNKNOWN SYMBOL */
-                    _ => dst.push(b'?'),
-                };
+                dst.push(b'?');
             }
         }
     }
@@ -52,7 +41,7 @@ pub fn decode(src: &[u8], dst: &mut String) {
     let size = src.len();
 
     let get_map = |code: usize| -> char {
-        match DECODE_MAP[code] {
+        match DECODE_MAP_ISO6937[code] {
             0x0000 => '�',
             u => unsafe { std::char::from_u32_unchecked(u32::from(u)) },
         }

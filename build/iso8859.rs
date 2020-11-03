@@ -1,17 +1,17 @@
 //! ISO 8859 Parser
-//!
-//! 1. Build generator: rustc parser.rs
-//! 2. Launch: ./parser >../../src/charset/data/iso8859.rs
 
 
-use std::{
-    fs::File,
-    io::{
-        self,
-        BufReader,
-        BufRead,
+use {
+    std::{
+        fs::File,
+        io::{
+            self,
+            BufReader,
+            BufRead,
+        },
+        path::Path,
     },
-    path::Path,
+    super::push_unicode,
 };
 
 
@@ -20,7 +20,7 @@ const ARR_SIZE: usize = 0xFF - 0xA0 + 1;
 
 fn read_file<P: AsRef<Path>>(path: P, part: usize) -> io::Result<()> {
     let mut arr_decode: Vec<u16> = vec![0x0000; ARR_SIZE];
-    let mut arr_encode: Vec<(u16, u8)> = Vec::new();
+    let mut arr_encode: Vec<(u16, u16)> = Vec::new();
 
     let file = File::open(path)?;
 
@@ -43,7 +43,7 @@ fn read_file<P: AsRef<Path>>(path: P, part: usize) -> io::Result<()> {
 
         let unicode = split.next().unwrap();
         let unicode = u16::from_str_radix(&unicode[2 ..], 16).unwrap();
-        arr_encode.push((unicode, code));
+        arr_encode.push((unicode, code as u16));
         arr_decode[(code - 0xA0) as usize] = unicode;
     }
 
@@ -63,6 +63,8 @@ fn read_file<P: AsRef<Path>>(path: P, part: usize) -> io::Result<()> {
     println!("];");
 
     // encode
+
+    push_unicode(&mut arr_encode);
 
     arr_encode.sort_by(|a, b| {
         (a.0).cmp(&b.0)
@@ -93,7 +95,7 @@ fn read_file<P: AsRef<Path>>(path: P, part: usize) -> io::Result<()> {
         }
 
         let pos = hi_skip * 0x100 + usize::from(lo);
-        code_map[pos] = *code;
+        code_map[pos] = *code as u8;
     }
 
     println!("");
@@ -133,7 +135,7 @@ fn read_file<P: AsRef<Path>>(path: P, part: usize) -> io::Result<()> {
     Ok(())
 }
 
-fn main() -> io::Result<()> {
+pub fn build() -> io::Result<()> {
     let base_path = std::env::current_exe()?;
     let base_path = base_path.parent().unwrap();
     let base_path = base_path.join("data");
@@ -156,11 +158,11 @@ fn main() -> io::Result<()> {
         (16, "South-Eastern European"),
     ];
 
-    println!("//! File generated with tools/iso8859/parser.rs");
+    println!("// Generated with build/iso8859.rs");
 
     for i in &map {
         println!("");
-        println!("/// {}", i.1);
+        println!("// {}", i.1);
         read_file(base_path.join(format!("8859-{}.TXT", i.0)), i.0)?;
     }
 
