@@ -56,12 +56,10 @@ macro_rules! iso8859 {
     ( $($name: ident, $decode_map: ident, $hi_map: ident, $encode_map: ident),* ) => {
         $(
             pub mod $name {
-                use crate::charset::{
-                    data::iso8859::{
-                        $decode_map,
-                        $hi_map,
-                        $encode_map,
-                    },
+                use crate::data::iso8859::{
+                    $decode_map,
+                    $hi_map,
+                    $encode_map,
                 };
 
                 #[inline]
