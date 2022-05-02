@@ -8,7 +8,6 @@ use crate::data::{
 };
 
 
-const HI_LIMIT: usize = 0x77;
 const LO_SIZE: usize = 0x7F - 0x21;
 
 
@@ -57,12 +56,18 @@ pub fn decode(src: &[u8], dst: &mut String) {
         let lo = usize::from(src[skip]) & 0x7F;
         skip += 1;
 
-        if lo < 0x21 || hi < 0x21 || hi > HI_LIMIT {
+        if lo < 0x21 || hi < 0x21 {
             dst.push('�');
             continue;
         }
 
         let shift = (hi - 0x21) * LO_SIZE + (lo - 0x21);
+
+        if shift >= DECODE_MAP_GB2312.len() {
+            dst.push('�');
+            continue;
+        }
+
         let c = u32::from(DECODE_MAP_GB2312[shift]);
 
         if c == 0 {

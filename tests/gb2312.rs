@@ -26,3 +26,15 @@ fn test_gb2312() {
     let dec = gb2312::decode_to_string(c);
     assert_eq!(dst, dec);
 }
+
+#[test]
+fn test_issue6() {
+    let expected: &str = "�";
+    let c: &[u8] = &[
+        0xf7, 0xff,
+    ];
+
+    let mut dst = String::new();
+    gb2312::decode(c, &mut dst);
+    assert_eq!(expected, dst.as_str());
+}
