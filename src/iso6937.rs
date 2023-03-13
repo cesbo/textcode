@@ -79,8 +79,11 @@ pub fn decode(src: &[u8], dst: &mut String) {
             }
 
             skip += 1;
-        } else {
+        } else if c >= 0xA0 {
             m = get_map(usize::from(c) - 0xA0);
+            skip += 1;
+        } else {
+            m = '�';
             skip += 1;
         }
 
