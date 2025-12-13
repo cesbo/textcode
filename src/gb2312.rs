@@ -1,15 +1,16 @@
 //! Simplified Chinese
 
-
-use crate::data::{
-    DECODE_MAP_GB2312,
-    HI_MAP_GB2312,
-    ENCODE_MAP_GB2312,
+use crate::{
+    DECODE_FALLBACK,
+    ENCODE_FALLBACK,
+    data::{
+        DECODE_MAP_GB2312,
+        ENCODE_MAP_GB2312,
+        HI_MAP_GB2312,
+    },
 };
 
-
 const LO_SIZE: usize = 0x7F - 0x21;
-
 
 pub fn encode(src: &str, dst: &mut Vec<u8>) {
     for c in src.chars() {
@@ -26,12 +27,11 @@ pub fn encode(src: &str, dst: &mut Vec<u8>) {
                 dst.push((code >> 8) as u8);
                 dst.push((code & 0xFF) as u8);
             } else {
-                dst.push(b'?');
+                dst.push(ENCODE_FALLBACK);
             }
         }
     }
 }
-
 
 pub fn decode(src: &[u8], dst: &mut String) {
     let mut skip = 0;
@@ -48,7 +48,7 @@ pub fn decode(src: &[u8], dst: &mut String) {
 
         skip += 1;
         if skip >= size {
-            dst.push('�');
+            dst.push(DECODE_FALLBACK);
             break;
         }
 
@@ -57,35 +57,33 @@ pub fn decode(src: &[u8], dst: &mut String) {
         skip += 1;
 
         if lo < 0x21 || hi < 0x21 {
-            dst.push('�');
+            dst.push(DECODE_FALLBACK);
             continue;
         }
 
         let shift = (hi - 0x21) * LO_SIZE + (lo - 0x21);
 
         if shift >= DECODE_MAP_GB2312.len() {
-            dst.push('�');
+            dst.push(DECODE_FALLBACK);
             continue;
         }
 
         let c = u32::from(DECODE_MAP_GB2312[shift]);
 
         if c == 0 {
-            dst.push('�');
+            dst.push(DECODE_FALLBACK);
             continue;
         }
 
-        dst.push(unsafe { std::char::from_u32_unchecked(c) })
+        dst.push(std::char::from_u32(c).unwrap_or(DECODE_FALLBACK));
     }
 }
-
 
 pub fn encode_to_vec(src: &str) -> Vec<u8> {
     let mut ret = Vec::new();
     encode(src, &mut ret);
     ret
 }
-
 
 pub fn decode_to_string(src: &[u8]) -> String {
     let mut ret = String::new();

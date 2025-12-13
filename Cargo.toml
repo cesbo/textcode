@@ -1,15 +1,20 @@
 [package]
 name = "textcode"
-version = "0.2.2"
+version = "0.3.0-beta.1"
 authors = ["Cesbo Developers Team"]
 description = "Text encoding/decoding library. Supports: UTF-8, ISO6937, ISO8859, GB2312"
 documentation = "https://docs.rs/textcode"
 repository = "https://github.com/cesbo/textcode"
-edition = "2018"
+edition = "2024"
 keywords = [
     "encoding",
     "unicode",
     "charset",
+]
+categories = [
+    "encoding",
+    "text-processing",
+    "internationalization",
 ]
 license = "MIT"
 readme = "README.md"

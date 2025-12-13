@@ -27,14 +27,13 @@
 //!
 //! [Read more...](https://github.com/cesbo/textcode)
 
-
 mod data;
+mod iso8859;
 
 pub mod iso6937;
-
-mod iso8859;
 pub use iso8859::*;
-
 pub mod gb2312;
-
 pub mod utf8;
+
+pub const ENCODE_FALLBACK: u8 = b'?';
+pub const DECODE_FALLBACK: char = '\u{FFFD}'; // �
