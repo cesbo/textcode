@@ -28,25 +28,42 @@ fn decode_impl<W: Write, R: AsRef<[u8]>>(
     Ok(written)
 }
 
-fn singlechar_encode(src: &str, dst: &mut Vec<u8>, hi_map: &[usize], map: &[u8]) {
-    for c in src.chars() {
-        let c = u32::from(c) as u16;
-        if c <= 0x7F {
-            dst.push(c as u8);
-        } else if c >= 0xA0 {
-            let hi = usize::from(c >> 8);
-            let lo = usize::from(c & 0xFF);
+fn encode_impl<W: Write, R: AsRef<str>>(
+    src: R,
+    dst: &mut W,
+    hi_map: &[usize],
+    map: &[u8],
+) -> Result<usize, TextcodeError> {
+    let src = src.as_ref();
+    let mut written = 0;
+
+    for ch in src.chars() {
+        let u = u32::from(ch) as u16;
+        let c;
+
+        if u <= 0x7F {
+            c = u as u8;
+        } else if u >= 0xA0 {
+            let hi = usize::from(u >> 8);
+            let lo = usize::from(u & 0xFF);
 
             let pos = hi_map[hi] * 0x100 + lo;
             let code = map[pos];
 
             if code != 0x0000 {
-                dst.push(code);
+                c = code;
             } else {
-                dst.push(ENCODE_FALLBACK);
+                c = ENCODE_FALLBACK;
             }
+        } else {
+            c = ENCODE_FALLBACK;
         }
+
+        dst.write_all(&[c]).map_err(|_| TextcodeError::Io)?;
+        written += 1;
     }
+
+    Ok(written)
 }
 
 macro_rules! iso8859 {
@@ -59,10 +76,6 @@ macro_rules! iso8859 {
                     $encode_map,
                 };
 
-                pub fn encode(src: &str, dst: &mut Vec<u8>) {
-                    super::singlechar_encode(src, dst, &$hi_map, &$encode_map)
-                }
-
                 pub fn decode(src: &[u8]) -> Result<String, crate::TextcodeError> {
                     let map = &$decode_map;
                     let mut result = String::new();
@@ -72,15 +85,20 @@ macro_rules! iso8859 {
                     Ok(result)
                 }
 
-                pub fn encode_to_vec(src: &str) -> Vec<u8> {
-                    let mut ret = Vec::new();
-                    encode(src, &mut ret);
-                    ret
-                }
-
                 pub fn decode_to_slice(src: &[u8], dst: &mut [u8]) -> usize {
                     let mut cursor = std::io::Cursor::new(dst);
                     crate::iso8859::decode_impl(src, &mut cursor, &$decode_map).unwrap_or(0)
+                }
+
+                pub fn encode(src: &str) -> Result<Vec<u8>, crate::TextcodeError> {
+                    let mut ret = Vec::new();
+                    crate::iso8859::encode_impl(src, &mut ret, &$hi_map, &$encode_map)?;
+                    Ok(ret)
+                }
+
+                pub fn encode_to_slice(src: &str, dst: &mut [u8]) -> usize {
+                    let mut cursor = std::io::Cursor::new(dst);
+                    crate::iso8859::encode_impl(src, &mut cursor, &$hi_map, &$encode_map).unwrap_or(0)
                 }
             }
         )*
