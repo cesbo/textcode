@@ -126,3 +126,28 @@ fn test_iso6937() {
         assert_eq!(dec.as_bytes(), &buf[.. len]);
     }
 }
+
+#[test]
+fn test_iso6937_buffer_overflow() {
+    // encode_to_slice: буфер слишком мал для результата
+    let src = "ÀÈÌ"; // 3 символа, каждый кодируется в 2 байта = 6 байт
+    let mut small_buf = [0u8; 4];
+    let len = iso6937::encode_to_slice(src, &mut small_buf);
+    assert_eq!(len, 0);
+
+    // encode_to_slice: буфер достаточного размера
+    let mut big_buf = [0u8; 16];
+    let len = iso6937::encode_to_slice(src, &mut big_buf);
+    assert_eq!(len, 6);
+
+    // decode_to_slice: буфер слишком мал для результата
+    let encoded = &[0xc1, 0x41, 0xc1, 0x45, 0xc1, 0x49]; // ÀÈÌ
+    let mut small_buf = [0u8; 4];
+    let len = iso6937::decode_to_slice(encoded, &mut small_buf);
+    assert_eq!(len, 0);
+
+    // decode_to_slice: буфер достаточного размера
+    let mut big_buf = [0u8; 16];
+    let len = iso6937::decode_to_slice(encoded, &mut big_buf);
+    assert_eq!(len, 6); // 3 символа по 2 байта UTF-8
+}
