@@ -1,7 +1,32 @@
+use std::io::Write;
+
 use crate::{
-    DECODE_FALLBACK,
     ENCODE_FALLBACK,
+    TextcodeError,
+    write_ascii,
+    write_utf8,
 };
+
+fn decode_impl<W: Write, R: AsRef<[u8]>>(
+    src: R,
+    dst: &mut W,
+    map: &[u16],
+) -> Result<usize, TextcodeError> {
+    let src = src.as_ref();
+    let mut written = 0;
+
+    for &c in src {
+        if c <= 0x7F {
+            written += write_ascii(dst, c)?;
+        } else if c >= 0xA0 {
+            let offset = c as usize - 0xA0;
+            let u = map[offset];
+            written += write_utf8(dst, u)?;
+        }
+    }
+
+    Ok(written)
+}
 
 fn singlechar_encode(src: &str, dst: &mut Vec<u8>, hi_map: &[usize], map: &[u8]) {
     for c in src.chars() {
@@ -24,22 +49,6 @@ fn singlechar_encode(src: &str, dst: &mut Vec<u8>, hi_map: &[usize], map: &[u8])
     }
 }
 
-fn singlechar_decode(src: &[u8], dst: &mut String, map: &[u16]) {
-    for &c in src {
-        if c <= 0x7F {
-            dst.push(c as char);
-        } else if c >= 0xA0 {
-            match map[c as usize - 0xA0] {
-                0 => dst.push(DECODE_FALLBACK),
-                u => {
-                    let c = u32::from(u);
-                    dst.push(std::char::from_u32(c).unwrap_or(DECODE_FALLBACK))
-                }
-            };
-        }
-    }
-}
-
 macro_rules! iso8859 {
     ( $($name: ident, $decode_map: ident, $hi_map: ident, $encode_map: ident),* ) => {
         $(
@@ -54,8 +63,13 @@ macro_rules! iso8859 {
                     super::singlechar_encode(src, dst, &$hi_map, &$encode_map)
                 }
 
-                pub fn decode(src: &[u8], dst: &mut String) {
-                    super::singlechar_decode(src, dst, &$decode_map)
+                pub fn decode(src: &[u8]) -> Result<String, crate::TextcodeError> {
+                    let map = &$decode_map;
+                    let mut result = String::new();
+                    // SAFE: writes valid UTF-8 sequences or DECODE_FALLBACK
+                    let dst = unsafe { result.as_mut_vec() };
+                    crate::iso8859::decode_impl(src, dst, map)?;
+                    Ok(result)
                 }
 
                 pub fn encode_to_vec(src: &str) -> Vec<u8> {
@@ -64,10 +78,9 @@ macro_rules! iso8859 {
                     ret
                 }
 
-                pub fn decode_to_string(src: &[u8]) -> String {
-                    let mut ret = String::new();
-                    decode(src, &mut ret);
-                    ret
+                pub fn decode_to_slice(src: &[u8], dst: &mut [u8]) -> usize {
+                    let mut cursor = std::io::Cursor::new(dst);
+                    crate::iso8859::decode_impl(src, &mut cursor, &$decode_map).unwrap_or(0)
                 }
             }
         )*

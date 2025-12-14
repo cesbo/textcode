@@ -30,6 +30,7 @@
 mod data;
 mod error;
 mod iso8859;
+mod utils;
 
 pub mod iso6937;
 pub use iso8859::*;
@@ -37,6 +38,4 @@ pub mod gb2312;
 pub mod utf8;
 
 pub use error::TextcodeError;
-
-pub(crate) const ENCODE_FALLBACK: u8 = b'?';
-pub(crate) const DECODE_FALLBACK: char = '\u{FFFD}'; // �
+pub(crate) use utils::*;

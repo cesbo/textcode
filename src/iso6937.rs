@@ -3,7 +3,6 @@
 use std::io::Write;
 
 use crate::{
-    DECODE_FALLBACK,
     ENCODE_FALLBACK,
     TextcodeError,
     data::{
@@ -11,38 +10,10 @@ use crate::{
         ENCODE_MAP_ISO6937,
         HI_MAP_ISO6937,
     },
+    write_ascii,
+    write_decode_fallback,
+    write_utf8,
 };
-
-#[inline]
-fn write_decode_fallback<W: Write>(dst: &mut W) -> Result<usize, TextcodeError> {
-    let mut buf = [0u8; 4];
-    let s = DECODE_FALLBACK.encode_utf8(&mut buf);
-
-    dst.write_all(s.as_bytes()).map_err(|_| TextcodeError::Io)?;
-    Ok(s.len())
-}
-
-#[inline]
-fn write_ascii<W: Write>(dst: &mut W, byte: u8) -> Result<usize, TextcodeError> {
-    dst.write_all(&[byte]).map_err(|_| TextcodeError::Io)?;
-    Ok(1)
-}
-
-#[inline]
-fn write_utf8<W: Write>(dst: &mut W, offset: usize) -> Result<usize, TextcodeError> {
-    let u = DECODE_MAP_ISO6937[offset];
-
-    let ch = if u == 0 {
-        DECODE_FALLBACK
-    } else {
-        char::from_u32(u as u32).unwrap_or(DECODE_FALLBACK)
-    };
-
-    let mut buf = [0u8; 4];
-    let s = ch.encode_utf8(&mut buf);
-    dst.write_all(s.as_bytes()).map_err(|_| TextcodeError::Io)?;
-    Ok(s.len())
-}
 
 fn decode_impl<W: Write, R: AsRef<[u8]>>(src: R, dst: &mut W) -> Result<usize, TextcodeError> {
     let mut skip = 0;
@@ -67,12 +38,16 @@ fn decode_impl<W: Write, R: AsRef<[u8]>>(src: R, dst: &mut W) -> Result<usize, T
             let map_skip = usize::from(c - 0xC1) * usize::from(b'z' - b'A' + 1) + (0x0100 - 0x00A0);
             let c = src[skip];
             if (b'A' ..= b'z').contains(&c) {
-                written += write_utf8(dst, map_skip + usize::from(c - b'A'))?;
+                let offset = map_skip + usize::from(c - b'A');
+                let u = DECODE_MAP_ISO6937[offset];
+                written += write_utf8(dst, u)?;
             } else {
                 written += write_decode_fallback(dst)?;
             }
         } else if c >= 0xA0 {
-            written += write_utf8(dst, usize::from(c) - 0xA0)?;
+            let offset = usize::from(c) - 0xA0;
+            let u = DECODE_MAP_ISO6937[offset];
+            written += write_utf8(dst, u)?;
         } else {
             written += write_decode_fallback(dst)?;
         }
