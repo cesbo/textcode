@@ -1,8 +1,11 @@
 //! Latin superset of ISO/IEC 6937 with addition of the Euro symbol
 
+use std::io::Write;
+
 use crate::{
     DECODE_FALLBACK,
     ENCODE_FALLBACK,
+    TextcodeError,
     data::{
         DECODE_MAP_ISO6937,
         ENCODE_MAP_ISO6937,
@@ -10,94 +13,139 @@ use crate::{
     },
 };
 
-pub fn encode(src: &str, dst: &mut Vec<u8>) {
-    for c in src.chars() {
-        let c = u32::from(c) as u16;
+#[inline]
+fn write_decode_fallback<W: Write>(dst: &mut W) -> Result<usize, TextcodeError> {
+    let mut buf = [0u8; 4];
+    let s = DECODE_FALLBACK.encode_utf8(&mut buf);
 
-        if c <= 0x7F {
-            dst.push(c as u8);
-        } else if c >= 0xA0 {
-            let hi = usize::from(c >> 8);
-            let lo = usize::from(c & 0xFF);
-
-            let pos = HI_MAP_ISO6937[hi] * 0x100 + lo;
-            let code = ENCODE_MAP_ISO6937[pos];
-
-            if code > 0xFF {
-                dst.push((code >> 8) as u8);
-                dst.push((code & 0xFF) as u8);
-            } else if code > 0 {
-                dst.push(code as u8);
-            } else {
-                dst.push(ENCODE_FALLBACK);
-            }
-        }
-    }
+    dst.write_all(s.as_bytes()).map_err(|_| TextcodeError::Io)?;
+    Ok(s.len())
 }
 
-pub fn decode(src: &[u8], dst: &mut String) {
-    let mut skip = 0;
-    let size = src.len();
+#[inline]
+fn write_ascii<W: Write>(dst: &mut W, byte: u8) -> Result<usize, TextcodeError> {
+    dst.write_all(&[byte]).map_err(|_| TextcodeError::Io)?;
+    Ok(1)
+}
 
-    let get_map = |code: usize| -> char {
-        match DECODE_MAP_ISO6937[code] {
-            0x0000 => DECODE_FALLBACK,
-            u => {
-                let c = u32::from(u);
-                std::char::from_u32(c).unwrap_or(DECODE_FALLBACK)
-            }
-        }
+#[inline]
+fn write_utf8<W: Write>(dst: &mut W, offset: usize) -> Result<usize, TextcodeError> {
+    let u = DECODE_MAP_ISO6937[offset];
+
+    let ch = if u == 0 {
+        DECODE_FALLBACK
+    } else {
+        char::from_u32(u as u32).unwrap_or(DECODE_FALLBACK)
     };
+
+    let mut buf = [0u8; 4];
+    let s = ch.encode_utf8(&mut buf);
+    dst.write_all(s.as_bytes()).map_err(|_| TextcodeError::Io)?;
+    Ok(s.len())
+}
+
+fn decode_impl<W: Write, R: AsRef<[u8]>>(src: R, dst: &mut W) -> Result<usize, TextcodeError> {
+    let mut skip = 0;
+    let src = src.as_ref();
+    let size = src.len();
+    let mut written = 0;
 
     while skip < size {
         let c = src[skip];
 
         if c <= 0x7F {
-            dst.push(c as char);
-            skip += 1;
-            continue;
-        }
-
-        let m;
-
-        if (0xC1 ..= 0xCF).contains(&c) {
+            written += write_ascii(dst, c)?;
+        } else if (0xC1 ..= 0xCF).contains(&c) {
             // diactrics
             skip += 1;
+
             if skip >= size {
-                dst.push(DECODE_FALLBACK);
+                written += write_decode_fallback(dst)?;
                 break;
             }
 
             let map_skip = usize::from(c - 0xC1) * usize::from(b'z' - b'A' + 1) + (0x0100 - 0x00A0);
-
             let c = src[skip];
             if (b'A' ..= b'z').contains(&c) {
-                m = get_map(map_skip + usize::from(c - b'A'));
+                written += write_utf8(dst, map_skip + usize::from(c - b'A'))?;
             } else {
-                m = DECODE_FALLBACK;
+                written += write_decode_fallback(dst)?;
             }
-
-            skip += 1;
         } else if c >= 0xA0 {
-            m = get_map(usize::from(c) - 0xA0);
-            skip += 1;
+            written += write_utf8(dst, usize::from(c) - 0xA0)?;
         } else {
-            m = DECODE_FALLBACK;
-            skip += 1;
+            written += write_decode_fallback(dst)?;
         }
 
-        dst.push(m);
+        skip += 1;
     }
+
+    Ok(written)
 }
 
-pub fn encode_to_vec(src: &str) -> Vec<u8> {
+fn encode_impl<W: Write, R: AsRef<str>>(src: R, dst: &mut W) -> Result<usize, TextcodeError> {
+    let src = src.as_ref();
+    let mut written = 0;
+
+    for ch in src.chars() {
+        let u = ch as u32;
+        let mut buf = [0u8; 2];
+        let n: usize;
+
+        if u <= 0x7F {
+            buf[0] = u as u8;
+            n = 1;
+        } else if u >= 0x00A0 && u <= 0xFFFF {
+            let c = u as u16;
+            let hi = (c >> 8) as usize;
+            let lo = (c & 0xFF) as usize;
+
+            let pos = HI_MAP_ISO6937[hi] * 0x100 + lo;
+            let code = ENCODE_MAP_ISO6937[pos];
+
+            if code > 0xFF {
+                buf[0] = (code >> 8) as u8;
+                buf[1] = (code & 0xFF) as u8;
+                n = 2;
+            } else if code > 0 {
+                buf[0] = code as u8;
+                n = 1;
+            } else {
+                buf[0] = ENCODE_FALLBACK;
+                n = 1;
+            }
+        } else {
+            buf[0] = ENCODE_FALLBACK;
+            n = 1;
+        }
+
+        dst.write_all(&buf[.. n]).map_err(|_| TextcodeError::Io)?;
+        written += n;
+    }
+
+    Ok(written)
+}
+
+pub fn encode(src: &str) -> Result<Vec<u8>, TextcodeError> {
     let mut ret = Vec::new();
-    encode(src, &mut ret);
-    ret
+    encode_impl(src, &mut ret)?;
+    Ok(ret)
 }
 
-pub fn decode_to_string(src: &[u8]) -> String {
-    let mut ret = String::new();
-    decode(src, &mut ret);
-    ret
+pub fn encode_to_slice(src: &str, dst: &mut [u8]) -> usize {
+    let mut cursor = std::io::Cursor::new(dst);
+    encode_impl(src, &mut cursor).unwrap_or(0)
+}
+
+pub fn decode(src: &[u8]) -> Result<String, TextcodeError> {
+    let mut result = String::new();
+    // SAFE: writes valid UTF-8 sequences or DECODE_FALLBACK
+    let dst = unsafe { result.as_mut_vec() };
+    decode_impl(src, dst)?;
+    Ok(result)
+}
+
+pub fn decode_to_slice(src: &[u8], dst: &mut [u8]) -> usize {
+    let mut cursor = std::io::Cursor::new(dst);
+    decode_impl(src, &mut cursor).unwrap_or(0)
 }
