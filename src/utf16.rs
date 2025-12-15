@@ -1,4 +1,14 @@
-//! UTF-16
+//! UTF-16 text codec.
+//!
+//! Decoding rules:
+//! - Detects an optional UTF-16 BOM (FE FF / FF FE).
+//! - If no BOM is present, UTF-16BE is assumed.
+//! - Valid UTF-16 code units and surrogate pairs are converted to UTF-8.
+//! - Invalid sequences (orphan surrogates, malformed pairs, truncated data)
+//!   are replaced with a fallback character ('?') and decoding continues.
+//!
+//! Encoding rules:
+//! - Text is encoded as UTF-16BE without BOM.
 
 use std::io::Write;
 
@@ -27,8 +37,9 @@ impl Textcode for Utf16 {
         };
 
         while i < src.len() {
-            if src.len() - i < 2 {
-                written += write_decode_fallback(dst)?; // odd tail -> fallback
+            if i + 2 > src.len() {
+                // incomplete u16
+                written += write_decode_fallback(dst)?;
                 break;
             }
 
@@ -44,6 +55,7 @@ impl Textcode for Utf16 {
             if (0xD800 ..= 0xDBFF).contains(&u1) {
                 // high surrogate: need low surrogate
                 if i + 2 > src.len() {
+                    // incomplete surrogate pair
                     written += write_decode_fallback(dst)?;
                     break;
                 }
