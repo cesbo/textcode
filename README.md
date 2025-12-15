@@ -4,9 +4,14 @@
 
 ## Intro
 
-textcode is a library for text encoding/decoding. Supports next charsets:
+Textcode is a library for text encoding/decoding.
+
+The library uses non-strict conversion: invalid or unmappable characters are replaced with `?`.
+
+## Charsets
 
 - `UTF-8`
+- `UTF-16`
 - `iso-6937` - Latin superset of ISO/IEC 6937 with Euro and letters with diacritics
 - `iso-8859-1` - Western European
 - `iso-8859-2` - Central European
@@ -25,8 +30,7 @@ textcode is a library for text encoding/decoding. Supports next charsets:
 - `iso-8859-16` - South-Eastern European
 - `gb2312` - Simplified Chinese
 
-
-Example:
+## Example
 
 ```rust
 use textcode::{Iso8859_5, decode, encode};
