@@ -129,25 +129,44 @@ fn test_iso6937() {
 
 #[test]
 fn test_iso6937_buffer_overflow() {
-    // encode_to_slice: буфер слишком мал для результата
-    let src = "ÀÈÌ"; // 3 символа, каждый кодируется в 2 байта = 6 байт
+    // encode_to_slice: buffer too small for result
+    let src = "ÀÈÌ"; // 3 characters, each encodes to 2 bytes = 6 bytes
     let mut small_buf = [0u8; 4];
     let len = iso6937::encode_to_slice(src, &mut small_buf);
     assert_eq!(len, 0);
 
-    // encode_to_slice: буфер достаточного размера
+    // encode_to_slice: buffer large enough
     let mut big_buf = [0u8; 16];
     let len = iso6937::encode_to_slice(src, &mut big_buf);
     assert_eq!(len, 6);
 
-    // decode_to_slice: буфер слишком мал для результата
+    // decode_to_slice: buffer too small for result
     let encoded = &[0xc1, 0x41, 0xc1, 0x45, 0xc1, 0x49]; // ÀÈÌ
     let mut small_buf = [0u8; 4];
     let len = iso6937::decode_to_slice(encoded, &mut small_buf);
     assert_eq!(len, 0);
 
-    // decode_to_slice: буфер достаточного размера
+    // decode_to_slice: buffer large enough
     let mut big_buf = [0u8; 16];
     let len = iso6937::decode_to_slice(encoded, &mut big_buf);
-    assert_eq!(len, 6); // 3 символа по 2 байта UTF-8
+    assert_eq!(len, 6); // 3 characters, 2 bytes each in UTF-8
+}
+
+#[test]
+fn test_iso6937_fallback() {
+    // encode_fallback: character outside ISO 6937 is encoded as '?'
+    let src = "Hello 😀"; // emoji 😀 is not supported
+    let enc = iso6937::encode(src);
+    assert_eq!(enc.as_slice(), b"Hello ?");
+
+    // encode_fallback: cyrillic characters are not supported in ISO 6937
+    let src = "Тест"; // cyrillic
+    let enc = iso6937::encode(src);
+    assert_eq!(enc.as_slice(), b"????");
+
+    // decode_fallback: invalid diacritical sequence
+    // 0xC1 - diacritical mark, but followed by invalid character
+    let encoded = &[0x48, 0x69, 0xC1, 0x21, 0x21]; // "Hi" + diacritical + '!!'
+    let dec = iso6937::decode(encoded);
+    assert_eq!(dec.as_str(), "Hi�!");
 }
