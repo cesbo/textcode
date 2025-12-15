@@ -37,7 +37,7 @@ let bytes = encode::<Iso8859_5>("Привет!");
 ## Charsets
 
 - `UTF-8`
-- `UTF-16`
+- `UTF-16` - Decoding BE and LE with BOM, encoding BE without BOM
 - `iso-6937` - Latin superset of ISO/IEC 6937 with Euro and letters with diacritics
 - `iso-8859-1` - Western European
 - `iso-8859-2` - Central European
@@ -55,6 +55,7 @@ let bytes = encode::<Iso8859_5>("Привет!");
 - `iso-8859-15` - Western European
 - `iso-8859-16` - South-Eastern European
 - `gb2312` - Simplified Chinese
+- `Geo` - DVB single-byte Georgian character encoding (Magti TV)
 
 ## Example
 
