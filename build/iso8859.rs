@@ -1,22 +1,18 @@
 //! ISO 8859 Parser
 
-
-use {
-    std::{
-        fs::File,
-        io::{
-            self,
-            BufReader,
-            BufRead,
-        },
-        path::Path,
+use std::{
+    fs::File,
+    io::{
+        self,
+        BufRead,
+        BufReader,
     },
-    super::push_unicode,
+    path::Path,
 };
 
+use super::push_unicode;
 
 const ARR_SIZE: usize = 0xFF - 0xA0 + 1;
-
 
 fn read_file<P: AsRef<Path>>(path: P, part: usize) -> io::Result<()> {
     let mut arr_decode: Vec<u16> = vec![0x0000; ARR_SIZE];
@@ -47,7 +43,8 @@ fn read_file<P: AsRef<Path>>(path: P, part: usize) -> io::Result<()> {
         arr_decode[(code - 0xA0) as usize] = unicode;
     }
 
-    println!("pub const DECODE_MAP_{}: [u16; {}] = [", part, ARR_SIZE);
+    println!("#[rustfmt::skip]");
+    println!("pub static DECODE_MAP_{}: [u16; {}] = [", part, ARR_SIZE);
     for (n, unicode) in arr_decode.iter().enumerate() {
         if (n % 8) == 0 {
             if n > 0 {
@@ -66,9 +63,7 @@ fn read_file<P: AsRef<Path>>(path: P, part: usize) -> io::Result<()> {
 
     push_unicode(&mut arr_encode);
 
-    arr_encode.sort_by(|a, b| {
-        (a.0).cmp(&b.0)
-    });
+    arr_encode.sort_by(|a, b| (a.0).cmp(&b.0));
 
     let mut code_map: Vec<u8> = vec![0; 0x100];
     let mut hi_map: Vec<usize> = vec![0; 0x100];
@@ -99,7 +94,8 @@ fn read_file<P: AsRef<Path>>(path: P, part: usize) -> io::Result<()> {
     }
 
     println!("");
-    println!("pub const HI_MAP_{}: [usize; {}] = [", part, hi_map.len());
+    println!("#[rustfmt::skip]");
+    println!("pub static HI_MAP_{}: [usize; {}] = [", part, hi_map.len());
     for (n, &pos) in hi_map.iter().enumerate() {
         if (n % 8) == 0 {
             if n > 0 {
@@ -116,7 +112,12 @@ fn read_file<P: AsRef<Path>>(path: P, part: usize) -> io::Result<()> {
     println!("];");
 
     println!("");
-    println!("pub const ENCODE_MAP_{}: [u8; {}] = [", part, code_map.len());
+    println!("#[rustfmt::skip]");
+    println!(
+        "pub static ENCODE_MAP_{}: [u8; {}] = [",
+        part,
+        code_map.len()
+    );
     for (n, &code) in code_map.iter().enumerate() {
         if (n % 8) == 0 {
             if n > 0 {

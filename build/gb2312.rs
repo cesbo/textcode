@@ -3,21 +3,17 @@
 //! 1. Build generator: rustc parser.rs
 //! 2. Launch: ./parser >../../src/charset/data/gb2312.rs
 
-
-use {
-    std::{
-        fs::File,
-        io::{
-            self,
-            BufReader,
-            BufRead,
-        },
-        path::Path,
+use std::{
+    fs::File,
+    io::{
+        self,
+        BufRead,
+        BufReader,
     },
-
-    super::push_unicode,
+    path::Path,
 };
 
+use super::push_unicode;
 
 fn read_file<P: AsRef<Path>>(path: P) -> io::Result<()> {
     let hi_limit = 0x77;
@@ -58,7 +54,11 @@ fn read_file<P: AsRef<Path>>(path: P) -> io::Result<()> {
     }
 
     println!("");
-    println!("pub const DECODE_MAP_GB2312: [u16; {}] = [", arr_decode.len());
+    println!("#[rustfmt::skip]");
+    println!(
+        "pub static DECODE_MAP_GB2312: [u16; {}] = [",
+        arr_decode.len()
+    );
     for (n, &unicode) in arr_decode.iter().enumerate() {
         if (n % 8) == 0 {
             if n > 0 {
@@ -78,9 +78,7 @@ fn read_file<P: AsRef<Path>>(path: P) -> io::Result<()> {
 
     push_unicode(&mut arr_encode);
 
-    arr_encode.sort_by(|a, b| {
-        (a.0).cmp(&b.0)
-    });
+    arr_encode.sort_by(|a, b| (a.0).cmp(&b.0));
 
     let mut code_map: Vec<u16> = vec![0; 0x100];
     let mut hi_map: Vec<usize> = vec![0; 0x100];
@@ -111,7 +109,8 @@ fn read_file<P: AsRef<Path>>(path: P) -> io::Result<()> {
     }
 
     println!("");
-    println!("pub const HI_MAP_GB2312: [usize; {}] = [", hi_map.len());
+    println!("#[rustfmt::skip]");
+    println!("pub static HI_MAP_GB2312: [usize; {}] = [", hi_map.len());
     for (n, &pos) in hi_map.iter().enumerate() {
         if (n % 8) == 0 {
             if n > 0 {
@@ -128,7 +127,11 @@ fn read_file<P: AsRef<Path>>(path: P) -> io::Result<()> {
     println!("];");
 
     println!("");
-    println!("pub const ENCODE_MAP_GB2312: [u16; {}] = [", code_map.len());
+    println!("#[rustfmt::skip]");
+    println!(
+        "pub static ENCODE_MAP_GB2312: [u16; {}] = [",
+        code_map.len()
+    );
     for (n, &code) in code_map.iter().enumerate() {
         if (n % 8) == 0 {
             if n > 0 {

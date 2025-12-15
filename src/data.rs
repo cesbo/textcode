@@ -1,6 +1,7 @@
 // Latin superset of ISO/IEC 6937 with Euro and letters with diacritics
 // File generated with build/iso6937.rs
 
+#[rustfmt::skip]
 pub static DECODE_MAP_ISO6937: [u16; 966] = [
     0x00a0, 0x00a1, 0x00a2, 0x00a3, 0x20ac, 0x00a5, 0x0000, 0x00a7,
     0x00a4, 0x2018, 0x201c, 0x00ab, 0x2190, 0x2191, 0x2192, 0x2193,
@@ -151,6 +152,7 @@ pub static DECODE_MAP_ISO6937: [u16; 966] = [
     0x0000, 0x017e,
 ];
 
+#[rustfmt::skip]
 pub static HI_MAP_ISO6937: [usize; 256] = [
     0, 1, 0, 2, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0,
@@ -186,6 +188,7 @@ pub static HI_MAP_ISO6937: [usize; 256] = [
     0, 0, 0, 0, 0, 0, 0, 0,
 ];
 
+#[rustfmt::skip]
 pub static ENCODE_MAP_ISO6937: [u16; 1536] = [
     0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
     0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
@@ -383,6 +386,7 @@ pub static ENCODE_MAP_ISO6937: [u16; 1536] = [
 // Generated with build/iso8859.rs
 
 // Western European
+#[rustfmt::skip]
 pub static DECODE_MAP_1: [u16; 96] = [
     0x00a0, 0x00a1, 0x00a2, 0x00a3, 0x00a4, 0x00a5, 0x00a6, 0x00a7,
     0x00a8, 0x00a9, 0x00aa, 0x00ab, 0x00ac, 0x00ad, 0x00ae, 0x00af,
@@ -398,6 +402,7 @@ pub static DECODE_MAP_1: [u16; 96] = [
     0x00f8, 0x00f9, 0x00fa, 0x00fb, 0x00fc, 0x00fd, 0x00fe, 0x00ff,
 ];
 
+#[rustfmt::skip]
 pub static HI_MAP_1: [usize; 256] = [
     0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0,
@@ -433,6 +438,7 @@ pub static HI_MAP_1: [usize; 256] = [
     0, 0, 0, 0, 0, 0, 0, 0,
 ];
 
+#[rustfmt::skip]
 pub static ENCODE_MAP_1: [u8; 512] = [
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -501,6 +507,7 @@ pub static ENCODE_MAP_1: [u8; 512] = [
 ];
 
 // Central European
+#[rustfmt::skip]
 pub static DECODE_MAP_2: [u16; 96] = [
     0x00a0, 0x0104, 0x02d8, 0x0141, 0x00a4, 0x013d, 0x015a, 0x00a7,
     0x00a8, 0x0160, 0x015e, 0x0164, 0x0179, 0x00ad, 0x017d, 0x017b,
@@ -516,6 +523,7 @@ pub static DECODE_MAP_2: [u16; 96] = [
     0x0159, 0x016f, 0x00fa, 0x0171, 0x00fc, 0x00fd, 0x0163, 0x02d9,
 ];
 
+#[rustfmt::skip]
 pub static HI_MAP_2: [usize; 256] = [
     0, 1, 2, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0,
@@ -551,6 +559,7 @@ pub static HI_MAP_2: [usize; 256] = [
     0, 0, 0, 0, 0, 0, 0, 0,
 ];
 
+#[rustfmt::skip]
 pub static ENCODE_MAP_2: [u8; 1024] = [
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -683,6 +692,7 @@ pub static ENCODE_MAP_2: [u8; 1024] = [
 ];
 
 // South European
+#[rustfmt::skip]
 pub static DECODE_MAP_3: [u16; 96] = [
     0x00a0, 0x0126, 0x02d8, 0x00a3, 0x00a4, 0x0000, 0x0124, 0x00a7,
     0x00a8, 0x0130, 0x015e, 0x011e, 0x0134, 0x00ad, 0x0000, 0x017b,
@@ -698,6 +708,7 @@ pub static DECODE_MAP_3: [u16; 96] = [
     0x011d, 0x00f9, 0x00fa, 0x00fb, 0x00fc, 0x016d, 0x015d, 0x02d9,
 ];
 
+#[rustfmt::skip]
 pub static HI_MAP_3: [usize; 256] = [
     0, 1, 2, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0,
@@ -733,6 +744,7 @@ pub static HI_MAP_3: [usize; 256] = [
     0, 0, 0, 0, 0, 0, 0, 0,
 ];
 
+#[rustfmt::skip]
 pub static ENCODE_MAP_3: [u8; 1024] = [
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -865,6 +877,7 @@ pub static ENCODE_MAP_3: [u8; 1024] = [
 ];
 
 // North European
+#[rustfmt::skip]
 pub static DECODE_MAP_4: [u16; 96] = [
     0x00a0, 0x0104, 0x0138, 0x0156, 0x00a4, 0x0128, 0x013b, 0x00a7,
     0x00a8, 0x0160, 0x0112, 0x0122, 0x0166, 0x00ad, 0x017d, 0x00af,
@@ -880,6 +893,7 @@ pub static DECODE_MAP_4: [u16; 96] = [
     0x00f8, 0x0173, 0x00fa, 0x00fb, 0x00fc, 0x0169, 0x016b, 0x02d9,
 ];
 
+#[rustfmt::skip]
 pub static HI_MAP_4: [usize; 256] = [
     0, 1, 2, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0,
@@ -915,6 +929,7 @@ pub static HI_MAP_4: [usize; 256] = [
     0, 0, 0, 0, 0, 0, 0, 0,
 ];
 
+#[rustfmt::skip]
 pub static ENCODE_MAP_4: [u8; 1024] = [
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -1047,6 +1062,7 @@ pub static ENCODE_MAP_4: [u8; 1024] = [
 ];
 
 // Cyrillic
+#[rustfmt::skip]
 pub static DECODE_MAP_5: [u16; 96] = [
     0x00a0, 0x0401, 0x0402, 0x0403, 0x0404, 0x0405, 0x0406, 0x0407,
     0x0408, 0x0409, 0x040a, 0x040b, 0x040c, 0x00ad, 0x040e, 0x040f,
@@ -1062,6 +1078,7 @@ pub static DECODE_MAP_5: [u16; 96] = [
     0x0458, 0x0459, 0x045a, 0x045b, 0x045c, 0x00a7, 0x045e, 0x045f,
 ];
 
+#[rustfmt::skip]
 pub static HI_MAP_5: [usize; 256] = [
     0, 0, 0, 0, 1, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0,
@@ -1097,6 +1114,7 @@ pub static HI_MAP_5: [usize; 256] = [
     0, 0, 0, 0, 0, 0, 0, 0,
 ];
 
+#[rustfmt::skip]
 pub static ENCODE_MAP_5: [u8; 1024] = [
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -1229,6 +1247,7 @@ pub static ENCODE_MAP_5: [u8; 1024] = [
 ];
 
 // Arabic
+#[rustfmt::skip]
 pub static DECODE_MAP_6: [u16; 96] = [
     0x00a0, 0x0000, 0x0000, 0x0000, 0x00a4, 0x0000, 0x0000, 0x0000,
     0x0000, 0x0000, 0x0000, 0x0000, 0x060c, 0x00ad, 0x0000, 0x0000,
@@ -1244,6 +1263,7 @@ pub static DECODE_MAP_6: [u16; 96] = [
     0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
 ];
 
+#[rustfmt::skip]
 pub static HI_MAP_6: [usize; 256] = [
     0, 0, 0, 0, 0, 0, 1, 0,
     0, 0, 0, 0, 0, 0, 0, 0,
@@ -1279,6 +1299,7 @@ pub static HI_MAP_6: [usize; 256] = [
     0, 0, 0, 0, 0, 0, 0, 0,
 ];
 
+#[rustfmt::skip]
 pub static ENCODE_MAP_6: [u8; 768] = [
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -1379,6 +1400,7 @@ pub static ENCODE_MAP_6: [u8; 768] = [
 ];
 
 // Greek
+#[rustfmt::skip]
 pub static DECODE_MAP_7: [u16; 96] = [
     0x00a0, 0x2018, 0x2019, 0x00a3, 0x20ac, 0x20af, 0x00a6, 0x00a7,
     0x00a8, 0x00a9, 0x037a, 0x00ab, 0x00ac, 0x00ad, 0x0000, 0x2015,
@@ -1394,6 +1416,7 @@ pub static DECODE_MAP_7: [u16; 96] = [
     0x03c8, 0x03c9, 0x03ca, 0x03cb, 0x03cc, 0x03cd, 0x03ce, 0x0000,
 ];
 
+#[rustfmt::skip]
 pub static HI_MAP_7: [usize; 256] = [
     0, 0, 0, 1, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0,
@@ -1429,6 +1452,7 @@ pub static HI_MAP_7: [usize; 256] = [
     0, 0, 0, 0, 0, 0, 0, 0,
 ];
 
+#[rustfmt::skip]
 pub static ENCODE_MAP_7: [u8; 768] = [
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -1529,6 +1553,7 @@ pub static ENCODE_MAP_7: [u8; 768] = [
 ];
 
 // Hebrew
+#[rustfmt::skip]
 pub static DECODE_MAP_8: [u16; 96] = [
     0x00a0, 0x0000, 0x00a2, 0x00a3, 0x00a4, 0x00a5, 0x00a6, 0x00a7,
     0x00a8, 0x00a9, 0x00d7, 0x00ab, 0x00ac, 0x00ad, 0x00ae, 0x00af,
@@ -1544,6 +1569,7 @@ pub static DECODE_MAP_8: [u16; 96] = [
     0x05e8, 0x05e9, 0x05ea, 0x0000, 0x0000, 0x200e, 0x200f, 0x0000,
 ];
 
+#[rustfmt::skip]
 pub static HI_MAP_8: [usize; 256] = [
     0, 0, 0, 0, 0, 1, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0,
@@ -1579,6 +1605,7 @@ pub static HI_MAP_8: [usize; 256] = [
     0, 0, 0, 0, 0, 0, 0, 0,
 ];
 
+#[rustfmt::skip]
 pub static ENCODE_MAP_8: [u8; 768] = [
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -1679,6 +1706,7 @@ pub static ENCODE_MAP_8: [u8; 768] = [
 ];
 
 // Turkish
+#[rustfmt::skip]
 pub static DECODE_MAP_9: [u16; 96] = [
     0x00a0, 0x00a1, 0x00a2, 0x00a3, 0x00a4, 0x00a5, 0x00a6, 0x00a7,
     0x00a8, 0x00a9, 0x00aa, 0x00ab, 0x00ac, 0x00ad, 0x00ae, 0x00af,
@@ -1694,6 +1722,7 @@ pub static DECODE_MAP_9: [u16; 96] = [
     0x00f8, 0x00f9, 0x00fa, 0x00fb, 0x00fc, 0x0131, 0x015f, 0x00ff,
 ];
 
+#[rustfmt::skip]
 pub static HI_MAP_9: [usize; 256] = [
     0, 1, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0,
@@ -1729,6 +1758,7 @@ pub static HI_MAP_9: [usize; 256] = [
     0, 0, 0, 0, 0, 0, 0, 0,
 ];
 
+#[rustfmt::skip]
 pub static ENCODE_MAP_9: [u8; 768] = [
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -1829,6 +1859,7 @@ pub static ENCODE_MAP_9: [u8; 768] = [
 ];
 
 // Nordic
+#[rustfmt::skip]
 pub static DECODE_MAP_10: [u16; 96] = [
     0x00a0, 0x0104, 0x0112, 0x0122, 0x012a, 0x0128, 0x0136, 0x00a7,
     0x013b, 0x0110, 0x0160, 0x0166, 0x017d, 0x00ad, 0x016a, 0x014a,
@@ -1844,6 +1875,7 @@ pub static DECODE_MAP_10: [u16; 96] = [
     0x00f8, 0x0173, 0x00fa, 0x00fb, 0x00fc, 0x00fd, 0x00fe, 0x0138,
 ];
 
+#[rustfmt::skip]
 pub static HI_MAP_10: [usize; 256] = [
     0, 1, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0,
@@ -1879,6 +1911,7 @@ pub static HI_MAP_10: [usize; 256] = [
     0, 0, 0, 0, 0, 0, 0, 0,
 ];
 
+#[rustfmt::skip]
 pub static ENCODE_MAP_10: [u8; 768] = [
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -1979,6 +2012,7 @@ pub static ENCODE_MAP_10: [u8; 768] = [
 ];
 
 // Thai
+#[rustfmt::skip]
 pub static DECODE_MAP_11: [u16; 96] = [
     0x00a0, 0x0e01, 0x0e02, 0x0e03, 0x0e04, 0x0e05, 0x0e06, 0x0e07,
     0x0e08, 0x0e09, 0x0e0a, 0x0e0b, 0x0e0c, 0x0e0d, 0x0e0e, 0x0e0f,
@@ -1994,6 +2028,7 @@ pub static DECODE_MAP_11: [u16; 96] = [
     0x0e58, 0x0e59, 0x0e5a, 0x0e5b, 0x0000, 0x0000, 0x0000, 0x0000,
 ];
 
+#[rustfmt::skip]
 pub static HI_MAP_11: [usize; 256] = [
     0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 1, 0,
@@ -2029,6 +2064,7 @@ pub static HI_MAP_11: [usize; 256] = [
     0, 0, 0, 0, 0, 0, 0, 0,
 ];
 
+#[rustfmt::skip]
 pub static ENCODE_MAP_11: [u8; 768] = [
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -2129,6 +2165,7 @@ pub static ENCODE_MAP_11: [u8; 768] = [
 ];
 
 // Baltic Rim
+#[rustfmt::skip]
 pub static DECODE_MAP_13: [u16; 96] = [
     0x00a0, 0x201d, 0x00a2, 0x00a3, 0x00a4, 0x201e, 0x00a6, 0x00a7,
     0x00d8, 0x00a9, 0x0156, 0x00ab, 0x00ac, 0x00ad, 0x00ae, 0x00c6,
@@ -2144,6 +2181,7 @@ pub static DECODE_MAP_13: [u16; 96] = [
     0x0173, 0x0142, 0x015b, 0x016b, 0x00fc, 0x017c, 0x017e, 0x2019,
 ];
 
+#[rustfmt::skip]
 pub static HI_MAP_13: [usize; 256] = [
     0, 1, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0,
@@ -2179,6 +2217,7 @@ pub static HI_MAP_13: [usize; 256] = [
     0, 0, 0, 0, 0, 0, 0, 0,
 ];
 
+#[rustfmt::skip]
 pub static ENCODE_MAP_13: [u8; 768] = [
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -2279,6 +2318,7 @@ pub static ENCODE_MAP_13: [u8; 768] = [
 ];
 
 // Celtic
+#[rustfmt::skip]
 pub static DECODE_MAP_14: [u16; 96] = [
     0x00a0, 0x1e02, 0x1e03, 0x00a3, 0x010a, 0x010b, 0x1e0a, 0x00a7,
     0x1e80, 0x00a9, 0x1e82, 0x1e0b, 0x1ef2, 0x00ad, 0x00ae, 0x0178,
@@ -2294,6 +2334,7 @@ pub static DECODE_MAP_14: [u16; 96] = [
     0x00f8, 0x00f9, 0x00fa, 0x00fb, 0x00fc, 0x00fd, 0x0177, 0x00ff,
 ];
 
+#[rustfmt::skip]
 pub static HI_MAP_14: [usize; 256] = [
     0, 1, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0,
@@ -2329,6 +2370,7 @@ pub static HI_MAP_14: [usize; 256] = [
     0, 0, 0, 0, 0, 0, 0, 0,
 ];
 
+#[rustfmt::skip]
 pub static ENCODE_MAP_14: [u8; 1024] = [
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -2461,6 +2503,7 @@ pub static ENCODE_MAP_14: [u8; 1024] = [
 ];
 
 // Western European
+#[rustfmt::skip]
 pub static DECODE_MAP_15: [u16; 96] = [
     0x00a0, 0x00a1, 0x00a2, 0x00a3, 0x20ac, 0x00a5, 0x0160, 0x00a7,
     0x0161, 0x00a9, 0x00aa, 0x00ab, 0x00ac, 0x00ad, 0x00ae, 0x00af,
@@ -2476,6 +2519,7 @@ pub static DECODE_MAP_15: [u16; 96] = [
     0x00f8, 0x00f9, 0x00fa, 0x00fb, 0x00fc, 0x00fd, 0x00fe, 0x00ff,
 ];
 
+#[rustfmt::skip]
 pub static HI_MAP_15: [usize; 256] = [
     0, 1, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0,
@@ -2511,6 +2555,7 @@ pub static HI_MAP_15: [usize; 256] = [
     0, 0, 0, 0, 0, 0, 0, 0,
 ];
 
+#[rustfmt::skip]
 pub static ENCODE_MAP_15: [u8; 768] = [
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -2611,6 +2656,7 @@ pub static ENCODE_MAP_15: [u8; 768] = [
 ];
 
 // South-Eastern European
+#[rustfmt::skip]
 pub static DECODE_MAP_16: [u16; 96] = [
     0x00a0, 0x0104, 0x0105, 0x0141, 0x20ac, 0x201e, 0x0160, 0x00a7,
     0x0161, 0x00a9, 0x0218, 0x00ab, 0x0179, 0x00ad, 0x017a, 0x017b,
@@ -2626,6 +2672,7 @@ pub static DECODE_MAP_16: [u16; 96] = [
     0x0171, 0x00f9, 0x00fa, 0x00fb, 0x00fc, 0x0119, 0x021b, 0x00ff,
 ];
 
+#[rustfmt::skip]
 pub static HI_MAP_16: [usize; 256] = [
     0, 1, 2, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0,
@@ -2661,6 +2708,7 @@ pub static HI_MAP_16: [usize; 256] = [
     0, 0, 0, 0, 0, 0, 0, 0,
 ];
 
+#[rustfmt::skip]
 pub static ENCODE_MAP_16: [u8; 1024] = [
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -2794,6 +2842,7 @@ pub static ENCODE_MAP_16: [u8; 1024] = [
 // Simplified Chinese. File generated with build/gb2312.rs
 
 
+#[rustfmt::skip]
 pub static DECODE_MAP_GB2312: [u16; 8178] = [
     0x3000, 0x3001, 0x3002, 0x30fb, 0x02c9, 0x02c7, 0x00a8, 0x3003,
     0x3005, 0x2015, 0xff5e, 0x2016, 0x2026, 0x2018, 0x2019, 0x201c,
@@ -3820,6 +3869,7 @@ pub static DECODE_MAP_GB2312: [u16; 8178] = [
     0x9f3e, 0x9f44,
 ];
 
+#[rustfmt::skip]
 pub static HI_MAP_GB2312: [usize; 256] = [
     0, 1, 2, 3, 4, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0,
@@ -3855,6 +3905,7 @@ pub static HI_MAP_GB2312: [usize; 256] = [
     0, 0, 0, 0, 0, 0, 0, 96,
 ];
 
+#[rustfmt::skip]
 pub static ENCODE_MAP_GB2312: [u16; 24832] = [
     0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
     0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
