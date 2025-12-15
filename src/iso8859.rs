@@ -7,7 +7,7 @@ use crate::{
     write_utf8,
 };
 
-fn decode_impl<W: Write, R: AsRef<[u8]>>(
+fn iso8859_decode_impl<W: Write, R: AsRef<[u8]>>(
     src: R,
     dst: &mut W,
     map: &[u16],
@@ -28,7 +28,7 @@ fn decode_impl<W: Write, R: AsRef<[u8]>>(
     Ok(written)
 }
 
-fn encode_impl<W: Write, R: AsRef<str>>(
+fn iso8859_encode_impl<W: Write, R: AsRef<str>>(
     src: R,
     dst: &mut W,
     hi_map: &[usize],
@@ -70,35 +70,50 @@ macro_rules! iso8859 {
     ( $($name: ident, $decode_map: ident, $hi_map: ident, $encode_map: ident),* ) => {
         $(
             pub mod $name {
+                use std::io::Write;
+                use crate::TextcodeError;
                 use crate::data::{
                     $decode_map,
                     $hi_map,
                     $encode_map,
                 };
 
+                fn decode_impl<W: Write, R: AsRef<[u8]>>(
+                    src: R,
+                    dst: &mut W,
+                ) -> Result<usize, TextcodeError> {
+                    crate::iso8859::iso8859_decode_impl(src, dst, &$decode_map)
+                }
+
+                fn encode_impl<W: Write, R: AsRef<str>>(
+                    src: R,
+                    dst: &mut W,
+                ) -> Result<usize, TextcodeError> {
+                    crate::iso8859::iso8859_encode_impl(src, dst, &$hi_map, &$encode_map)
+                }
+
                 pub fn decode(src: &[u8]) -> Result<String, crate::TextcodeError> {
-                    let map = &$decode_map;
                     let mut result = String::new();
                     // SAFE: writes valid UTF-8 sequences or DECODE_FALLBACK
                     let dst = unsafe { result.as_mut_vec() };
-                    crate::iso8859::decode_impl(src, dst, map)?;
+                    decode_impl(src, dst)?;
                     Ok(result)
                 }
 
                 pub fn decode_to_slice(src: &[u8], dst: &mut [u8]) -> usize {
                     let mut cursor = std::io::Cursor::new(dst);
-                    crate::iso8859::decode_impl(src, &mut cursor, &$decode_map).unwrap_or(0)
+                    decode_impl(src, &mut cursor).unwrap_or(0)
                 }
 
                 pub fn encode(src: &str) -> Result<Vec<u8>, crate::TextcodeError> {
                     let mut ret = Vec::new();
-                    crate::iso8859::encode_impl(src, &mut ret, &$hi_map, &$encode_map)?;
+                    encode_impl(src, &mut ret)?;
                     Ok(ret)
                 }
 
                 pub fn encode_to_slice(src: &str, dst: &mut [u8]) -> usize {
                     let mut cursor = std::io::Cursor::new(dst);
-                    crate::iso8859::encode_impl(src, &mut cursor, &$hi_map, &$encode_map).unwrap_or(0)
+                    encode_impl(src, &mut cursor).unwrap_or(0)
                 }
             }
         )*
