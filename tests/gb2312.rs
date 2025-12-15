@@ -1,4 +1,10 @@
-use textcode::*;
+use textcode::{
+    Gb2312,
+    decode,
+    decode_to_slice,
+    encode,
+    encode_to_slice,
+};
 
 #[test]
 fn test_gb2312() {
@@ -12,16 +18,16 @@ fn test_gb2312() {
 
     let mut buf = [0u8; 512];
 
-    let enc = gb2312::encode(u);
+    let enc = encode::<Gb2312>(u);
     assert_eq!(enc.as_slice(), c);
 
-    let enc_len = gb2312::encode_to_slice(u, &mut buf);
+    let enc_len = encode_to_slice::<Gb2312>(u, &mut buf);
     assert_eq!(enc, &buf[.. enc_len]);
 
-    let dec = gb2312::decode(c);
+    let dec = decode::<Gb2312>(c);
     assert_eq!(u, dec.as_str());
 
-    let dec_len = gb2312::decode_to_slice(c, &mut buf);
+    let dec_len = decode_to_slice::<Gb2312>(c, &mut buf);
     assert_eq!(dec.as_bytes(), &buf[.. dec_len]);
 }
 
@@ -30,6 +36,6 @@ fn test_gb2312_issue6() {
     let expected: &str = "�";
     let c: &[u8] = &[0xf7, 0xff];
 
-    let dec = gb2312::decode(c);
+    let dec = decode::<Gb2312>(c);
     assert_eq!(expected, dec.as_str());
 }

@@ -1,4 +1,8 @@
-use textcode::*;
+use textcode::{
+    Utf8,
+    decode,
+    encode,
+};
 
 #[test]
 fn test_utf8() {
@@ -7,10 +11,10 @@ fn test_utf8() {
         0xd0, 0xa2, 0xd0, 0xb5, 0xd1, 0x81, 0xd1, 0x82, 0x20, 0xf0, 0x9f, 0x98, 0x80,
     ];
 
-    let enc = utf8::encode(u);
+    let enc = encode::<Utf8>(u);
     assert_eq!(c, enc.as_slice());
 
-    let dec = utf8::decode(c);
+    let dec = decode::<Utf8>(c);
     assert_eq!(u, dec.as_str());
 }
 
@@ -29,9 +33,9 @@ fn test_utf8_n_bytes() {
         0x78,
     ];
 
-    let enc = utf8::encode(u);
+    let enc = encode::<Utf8>(u);
     assert_eq!(c, enc.as_slice());
 
-    let dec = utf8::decode(c);
+    let dec = decode::<Utf8>(c);
     assert_eq!(u, dec.as_str());
 }

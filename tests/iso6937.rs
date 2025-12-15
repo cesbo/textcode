@@ -1,4 +1,10 @@
-use textcode::*;
+use textcode::{
+    Iso6937,
+    decode,
+    decode_to_slice,
+    encode,
+    encode_to_slice,
+};
 
 #[test]
 fn test_iso6937() {
@@ -111,18 +117,18 @@ fn test_iso6937() {
     let mut buf = [0u8; 512];
 
     for test in tests {
-        let enc = iso6937::encode(&test.decoded);
+        let enc = encode::<Iso6937>(&test.decoded);
         assert_eq!(enc.as_slice(), test.encoded);
 
-        let len = iso6937::encode_to_slice(&test.decoded, &mut buf);
+        let len = encode_to_slice::<Iso6937>(&test.decoded, &mut buf);
         assert_eq!(enc, &buf[.. len]);
     }
 
     for test in tests {
-        let dec = iso6937::decode(test.encoded);
+        let dec = decode::<Iso6937>(test.encoded);
         assert_eq!(test.decoded, dec.as_str());
 
-        let len = iso6937::decode_to_slice(test.encoded, &mut buf);
+        let len = decode_to_slice::<Iso6937>(test.encoded, &mut buf);
         assert_eq!(dec.as_bytes(), &buf[.. len]);
     }
 }
@@ -132,23 +138,23 @@ fn test_iso6937_buffer_overflow() {
     // encode_to_slice: buffer too small for result
     let src = "ÀÈÌ"; // 3 characters, each encodes to 2 bytes = 6 bytes
     let mut small_buf = [0u8; 4];
-    let len = iso6937::encode_to_slice(src, &mut small_buf);
+    let len = encode_to_slice::<Iso6937>(src, &mut small_buf);
     assert_eq!(len, 0);
 
     // encode_to_slice: buffer large enough
     let mut big_buf = [0u8; 16];
-    let len = iso6937::encode_to_slice(src, &mut big_buf);
+    let len = encode_to_slice::<Iso6937>(src, &mut big_buf);
     assert_eq!(len, 6);
 
     // decode_to_slice: buffer too small for result
     let encoded = &[0xc1, 0x41, 0xc1, 0x45, 0xc1, 0x49]; // ÀÈÌ
     let mut small_buf = [0u8; 4];
-    let len = iso6937::decode_to_slice(encoded, &mut small_buf);
+    let len = decode_to_slice::<Iso6937>(encoded, &mut small_buf);
     assert_eq!(len, 0);
 
     // decode_to_slice: buffer large enough
     let mut big_buf = [0u8; 16];
-    let len = iso6937::decode_to_slice(encoded, &mut big_buf);
+    let len = decode_to_slice::<Iso6937>(encoded, &mut big_buf);
     assert_eq!(len, 6); // 3 characters, 2 bytes each in UTF-8
 }
 
@@ -156,17 +162,17 @@ fn test_iso6937_buffer_overflow() {
 fn test_iso6937_fallback() {
     // encode_fallback: character outside ISO 6937 is encoded as '?'
     let src = "Hello 😀"; // emoji 😀 is not supported
-    let enc = iso6937::encode(src);
+    let enc = encode::<Iso6937>(src);
     assert_eq!(enc.as_slice(), b"Hello ?");
 
     // encode_fallback: cyrillic characters are not supported in ISO 6937
     let src = "Тест"; // cyrillic
-    let enc = iso6937::encode(src);
+    let enc = encode::<Iso6937>(src);
     assert_eq!(enc.as_slice(), b"????");
 
     // decode_fallback: invalid diacritical sequence
     // 0xC1 - diacritical mark, but followed by invalid character
     let encoded = &[0x48, 0x69, 0xC1, 0x21, 0x21]; // "Hi" + diacritical + '!!'
-    let dec = iso6937::decode(encoded);
+    let dec = decode::<Iso6937>(encoded);
     assert_eq!(dec.as_str(), "Hi�!");
 }

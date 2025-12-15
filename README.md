@@ -29,16 +29,16 @@ textcode is a library for text encoding/decoding. Supports next charsets:
 Example:
 
 ```rust
-use textcode::iso8859_5;
+use textcode::{Iso8859_5, decode, encode};
 
 const UTF8: &str = "Привет!";
 const ISO8859_5: &[u8] = &[0xbf, 0xe0, 0xd8, 0xd2, 0xd5, 0xe2, 0x21];
 
 let mut dst: Vec<u8> = Vec::new();
-iso8859_5::encode(UTF8, &mut dst);
+encode::<Iso8859_5>(UTF8, &mut dst);
 assert_eq!(dst.as_slice(), ISO8859_5);
 
 let mut dst = String::new();
-iso8859_5::decode(ISO8859_5, &mut dst);
+decode::<Iso8859_5>(ISO8859_5, &mut dst);
 assert_eq!(UTF8, dst.as_str());
 ```

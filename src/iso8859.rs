@@ -2,16 +2,12 @@ use std::io::Write;
 
 use crate::{
     ENCODE_FALLBACK,
+    Textcode,
     write_ascii,
     write_utf8,
 };
 
-fn iso8859_decode_impl<W: Write, R: AsRef<[u8]>>(
-    src: R,
-    dst: &mut W,
-    map: &[u16],
-) -> std::io::Result<usize> {
-    let src = src.as_ref();
+fn decode_inner<W: Write>(src: &[u8], dst: &mut W, map: &[u16]) -> std::io::Result<usize> {
     let mut written = 0;
 
     for &c in src {
@@ -27,13 +23,12 @@ fn iso8859_decode_impl<W: Write, R: AsRef<[u8]>>(
     Ok(written)
 }
 
-fn iso8859_encode_impl<W: Write, R: AsRef<str>>(
-    src: R,
+fn encode_inner<W: Write>(
+    src: &str,
     dst: &mut W,
     hi_map: &[usize],
     map: &[u8],
 ) -> std::io::Result<usize> {
-    let src = src.as_ref();
     let mut written = 0;
 
     for ch in src.chars() {
@@ -66,52 +61,18 @@ fn iso8859_encode_impl<W: Write, R: AsRef<str>>(
 }
 
 macro_rules! iso8859 {
-    ( $($name: ident, $decode_map: ident, $hi_map: ident, $encode_map: ident),* ) => {
+    ( $($struct_name: ident, $decode_map: ident, $hi_map: ident, $encode_map: ident),* ) => {
         $(
-            pub mod $name {
-                use std::io::Write;
-                use crate::data::{
-                    $decode_map,
-                    $hi_map,
-                    $encode_map,
-                };
+            /// ISO-8859 encoding implementation.
+            pub struct $struct_name;
 
-                fn decode_impl<W: Write, R: AsRef<[u8]>>(
-                    src: R,
-                    dst: &mut W,
-                ) -> std::io::Result<usize> {
-                    crate::iso8859::iso8859_decode_impl(src, dst, &$decode_map)
+            impl Textcode for $struct_name {
+                fn decode<W: Write, R: AsRef<[u8]>>(src: R, dst: &mut W) -> std::io::Result<usize> {
+                    decode_inner(src.as_ref(), dst, &crate::data::$decode_map)
                 }
 
-                fn encode_impl<W: Write, R: AsRef<str>>(
-                    src: R,
-                    dst: &mut W,
-                ) -> std::io::Result<usize> {
-                    crate::iso8859::iso8859_encode_impl(src, dst, &$hi_map, &$encode_map)
-                }
-
-                pub fn decode(src: &[u8]) -> String {
-                    let mut result = String::new();
-                    // SAFE: writes valid UTF-8 sequences or DECODE_FALLBACK
-                    let dst = unsafe { result.as_mut_vec() };
-                    let _ = decode_impl(src, dst);
-                    result
-                }
-
-                pub fn decode_to_slice(src: &[u8], dst: &mut [u8]) -> usize {
-                    let mut cursor = std::io::Cursor::new(dst);
-                    decode_impl(src, &mut cursor).unwrap_or(0)
-                }
-
-                pub fn encode(src: &str) -> Vec<u8> {
-                    let mut ret = Vec::new();
-                    let _ = encode_impl(src, &mut ret);
-                    ret
-                }
-
-                pub fn encode_to_slice(src: &str, dst: &mut [u8]) -> usize {
-                    let mut cursor = std::io::Cursor::new(dst);
-                    encode_impl(src, &mut cursor).unwrap_or(0)
+                fn encode<W: Write, R: AsRef<str>>(src: R, dst: &mut W) -> std::io::Result<usize> {
+                    encode_inner(src.as_ref(), dst, &crate::data::$hi_map, &crate::data::$encode_map)
                 }
             }
         )*
@@ -120,77 +81,77 @@ macro_rules! iso8859 {
 
 iso8859!(
     // Western European
-    iso8859_1,
+    Iso8859_1,
     DECODE_MAP_1,
     HI_MAP_1,
     ENCODE_MAP_1,
     // Central European
-    iso8859_2,
+    Iso8859_2,
     DECODE_MAP_2,
     HI_MAP_2,
     ENCODE_MAP_2,
     // South European
-    iso8859_3,
+    Iso8859_3,
     DECODE_MAP_3,
     HI_MAP_3,
     ENCODE_MAP_3,
     // North European
-    iso8859_4,
+    Iso8859_4,
     DECODE_MAP_4,
     HI_MAP_4,
     ENCODE_MAP_4,
     // Cyrillic
-    iso8859_5,
+    Iso8859_5,
     DECODE_MAP_5,
     HI_MAP_5,
     ENCODE_MAP_5,
     // Arabic
-    iso8859_6,
+    Iso8859_6,
     DECODE_MAP_6,
     HI_MAP_6,
     ENCODE_MAP_6,
     // Greek
-    iso8859_7,
+    Iso8859_7,
     DECODE_MAP_7,
     HI_MAP_7,
     ENCODE_MAP_7,
     // Hebrew
-    iso8859_8,
+    Iso8859_8,
     DECODE_MAP_8,
     HI_MAP_8,
     ENCODE_MAP_8,
     // Turkish
-    iso8859_9,
+    Iso8859_9,
     DECODE_MAP_9,
     HI_MAP_9,
     ENCODE_MAP_9,
     // Nordic
-    iso8859_10,
+    Iso8859_10,
     DECODE_MAP_10,
     HI_MAP_10,
     ENCODE_MAP_10,
     // Thai
-    iso8859_11,
+    Iso8859_11,
     DECODE_MAP_11,
     HI_MAP_11,
     ENCODE_MAP_11,
     // Baltic Rim
-    iso8859_13,
+    Iso8859_13,
     DECODE_MAP_13,
     HI_MAP_13,
     ENCODE_MAP_13,
     // Celtic
-    iso8859_14,
+    Iso8859_14,
     DECODE_MAP_14,
     HI_MAP_14,
     ENCODE_MAP_14,
     // Western European
-    iso8859_15,
+    Iso8859_15,
     DECODE_MAP_15,
     HI_MAP_15,
     ENCODE_MAP_15,
     // South-Eastern European
-    iso8859_16,
+    Iso8859_16,
     DECODE_MAP_16,
     HI_MAP_16,
     ENCODE_MAP_16
