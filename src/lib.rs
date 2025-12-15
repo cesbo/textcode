@@ -52,6 +52,8 @@ mod iso6937;
 mod utf16;
 mod utf8;
 
+pub mod dvb;
+
 pub use gb2312::Gb2312;
 pub use iso6937::Iso6937;
 pub use iso8859::*;
