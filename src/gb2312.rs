@@ -4,7 +4,6 @@ use std::io::Write;
 
 use crate::{
     ENCODE_FALLBACK,
-    TextcodeError,
     data::{
         DECODE_MAP_GB2312,
         ENCODE_MAP_GB2312,
@@ -17,7 +16,7 @@ use crate::{
 
 const LO_SIZE: usize = 0x7F - 0x21;
 
-fn decode_impl<W: Write, R: AsRef<[u8]>>(src: R, dst: &mut W) -> Result<usize, TextcodeError> {
+fn decode_impl<W: Write, R: AsRef<[u8]>>(src: R, dst: &mut W) -> std::io::Result<usize> {
     let mut skip = 0;
     let src = src.as_ref();
     let size = src.len();
@@ -61,7 +60,7 @@ fn decode_impl<W: Write, R: AsRef<[u8]>>(src: R, dst: &mut W) -> Result<usize, T
     Ok(written)
 }
 
-fn encode_impl<W: Write, R: AsRef<str>>(src: R, dst: &mut W) -> Result<usize, TextcodeError> {
+fn encode_impl<W: Write, R: AsRef<str>>(src: R, dst: &mut W) -> std::io::Result<usize> {
     let src = src.as_ref();
     let mut written = 0;
 
@@ -93,17 +92,17 @@ fn encode_impl<W: Write, R: AsRef<str>>(src: R, dst: &mut W) -> Result<usize, Te
             n = 1;
         }
 
-        dst.write_all(&buf[.. n]).map_err(|_| TextcodeError::Io)?;
+        dst.write_all(&buf[.. n])?;
         written += n;
     }
 
     Ok(written)
 }
 
-pub fn encode(src: &str) -> Result<Vec<u8>, TextcodeError> {
+pub fn encode(src: &str) -> Vec<u8> {
     let mut ret = Vec::new();
-    encode_impl(src, &mut ret)?;
-    Ok(ret)
+    let _ = encode_impl(src, &mut ret);
+    ret
 }
 
 pub fn encode_to_slice(src: &str, dst: &mut [u8]) -> usize {
@@ -111,12 +110,12 @@ pub fn encode_to_slice(src: &str, dst: &mut [u8]) -> usize {
     encode_impl(src, &mut cursor).unwrap_or(0)
 }
 
-pub fn decode(src: &[u8]) -> Result<String, TextcodeError> {
+pub fn decode(src: &[u8]) -> String {
     let mut result = String::new();
     // SAFE: writes valid UTF-8 sequences or DECODE_FALLBACK
     let dst = unsafe { result.as_mut_vec() };
-    decode_impl(src, dst)?;
-    Ok(result)
+    let _ = decode_impl(src, dst);
+    result
 }
 
 pub fn decode_to_slice(src: &[u8], dst: &mut [u8]) -> usize {

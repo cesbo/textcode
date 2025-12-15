@@ -12,13 +12,13 @@ fn test_gb2312() {
 
     let mut buf = [0u8; 512];
 
-    let enc = gb2312::encode(u).unwrap();
+    let enc = gb2312::encode(u);
     assert_eq!(enc.as_slice(), c);
 
     let enc_len = gb2312::encode_to_slice(u, &mut buf);
     assert_eq!(enc, &buf[.. enc_len]);
 
-    let dec = gb2312::decode(c).unwrap();
+    let dec = gb2312::decode(c);
     assert_eq!(u, dec.as_str());
 
     let dec_len = gb2312::decode_to_slice(c, &mut buf);
@@ -30,6 +30,6 @@ fn test_gb2312_issue6() {
     let expected: &str = "�";
     let c: &[u8] = &[0xf7, 0xff];
 
-    let dec = gb2312::decode(c).unwrap();
+    let dec = gb2312::decode(c);
     assert_eq!(expected, dec.as_str());
 }

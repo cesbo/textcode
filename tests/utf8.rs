@@ -5,10 +5,10 @@ fn test_utf8() {
     let u = "тест";
     let c: &[u8] = &[0xd1, 0x82, 0xd0, 0xb5, 0xd1, 0x81, 0xd1, 0x82];
 
-    let enc = utf8::encode(u).unwrap();
+    let enc = utf8::encode(u);
     assert_eq!(c, enc.as_slice());
 
-    let dec = utf8::decode(c).unwrap();
+    let dec = utf8::decode(c);
     assert_eq!(u, dec.as_str());
 }
 
@@ -27,9 +27,9 @@ fn test_utf8_n_bytes() {
         0x78,
     ];
 
-    let enc = utf8::encode(u).unwrap();
+    let enc = utf8::encode(u);
     assert_eq!(c, enc.as_slice());
 
-    let dec = utf8::decode(c).unwrap();
+    let dec = utf8::decode(c);
     assert_eq!(u, dec.as_str());
 }

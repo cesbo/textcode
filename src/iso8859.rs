@@ -2,7 +2,6 @@ use std::io::Write;
 
 use crate::{
     ENCODE_FALLBACK,
-    TextcodeError,
     write_ascii,
     write_utf8,
 };
@@ -11,7 +10,7 @@ fn iso8859_decode_impl<W: Write, R: AsRef<[u8]>>(
     src: R,
     dst: &mut W,
     map: &[u16],
-) -> Result<usize, TextcodeError> {
+) -> std::io::Result<usize> {
     let src = src.as_ref();
     let mut written = 0;
 
@@ -33,7 +32,7 @@ fn iso8859_encode_impl<W: Write, R: AsRef<str>>(
     dst: &mut W,
     hi_map: &[usize],
     map: &[u8],
-) -> Result<usize, TextcodeError> {
+) -> std::io::Result<usize> {
     let src = src.as_ref();
     let mut written = 0;
 
@@ -59,7 +58,7 @@ fn iso8859_encode_impl<W: Write, R: AsRef<str>>(
             c = ENCODE_FALLBACK;
         }
 
-        dst.write_all(&[c]).map_err(|_| TextcodeError::Io)?;
+        dst.write_all(&[c])?;
         written += 1;
     }
 
@@ -71,7 +70,6 @@ macro_rules! iso8859 {
         $(
             pub mod $name {
                 use std::io::Write;
-                use crate::TextcodeError;
                 use crate::data::{
                     $decode_map,
                     $hi_map,
@@ -81,23 +79,23 @@ macro_rules! iso8859 {
                 fn decode_impl<W: Write, R: AsRef<[u8]>>(
                     src: R,
                     dst: &mut W,
-                ) -> Result<usize, TextcodeError> {
+                ) -> std::io::Result<usize> {
                     crate::iso8859::iso8859_decode_impl(src, dst, &$decode_map)
                 }
 
                 fn encode_impl<W: Write, R: AsRef<str>>(
                     src: R,
                     dst: &mut W,
-                ) -> Result<usize, TextcodeError> {
+                ) -> std::io::Result<usize> {
                     crate::iso8859::iso8859_encode_impl(src, dst, &$hi_map, &$encode_map)
                 }
 
-                pub fn decode(src: &[u8]) -> Result<String, crate::TextcodeError> {
+                pub fn decode(src: &[u8]) -> String {
                     let mut result = String::new();
                     // SAFE: writes valid UTF-8 sequences or DECODE_FALLBACK
                     let dst = unsafe { result.as_mut_vec() };
-                    decode_impl(src, dst)?;
-                    Ok(result)
+                    let _ = decode_impl(src, dst);
+                    result
                 }
 
                 pub fn decode_to_slice(src: &[u8], dst: &mut [u8]) -> usize {
@@ -105,10 +103,10 @@ macro_rules! iso8859 {
                     decode_impl(src, &mut cursor).unwrap_or(0)
                 }
 
-                pub fn encode(src: &str) -> Result<Vec<u8>, crate::TextcodeError> {
+                pub fn encode(src: &str) -> Vec<u8> {
                     let mut ret = Vec::new();
-                    encode_impl(src, &mut ret)?;
-                    Ok(ret)
+                    let _ = encode_impl(src, &mut ret);
+                    ret
                 }
 
                 pub fn encode_to_slice(src: &str, dst: &mut [u8]) -> usize {

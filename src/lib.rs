@@ -28,7 +28,6 @@
 //! [Read more...](https://github.com/cesbo/textcode)
 
 mod data;
-mod error;
 mod iso8859;
 mod utils;
 
@@ -37,5 +36,4 @@ pub use iso8859::*;
 pub mod gb2312;
 pub mod utf8;
 
-pub use error::TextcodeError;
 pub(crate) use utils::*;

@@ -111,7 +111,7 @@ fn test_iso6937() {
     let mut buf = [0u8; 512];
 
     for test in tests {
-        let enc = iso6937::encode(&test.decoded).unwrap();
+        let enc = iso6937::encode(&test.decoded);
         assert_eq!(enc.as_slice(), test.encoded);
 
         let len = iso6937::encode_to_slice(&test.decoded, &mut buf);
@@ -119,7 +119,7 @@ fn test_iso6937() {
     }
 
     for test in tests {
-        let dec = iso6937::decode(test.encoded).unwrap();
+        let dec = iso6937::decode(test.encoded);
         assert_eq!(test.decoded, dec.as_str());
 
         let len = iso6937::decode_to_slice(test.encoded, &mut buf);
