@@ -8,6 +8,32 @@ Textcode is a library for text encoding/decoding.
 
 The library uses non-strict conversion: invalid or unmappable characters are replaced with `?`.
 
+## ⚠️ Breaking change in v0.3.0
+
+The library API has been completely redesigned:
+
+**Old API (v0.2.x):** module-based functions
+
+```rust
+use textcode::iso8859_5;
+
+let mut text = String::new();
+iso8859_5::decode(b"\xbf\xe0\xd8\xd2\xd5\xe2!", &mut text);
+
+let mut bytes = Vec::new();
+iso8859_5::encode("Привет!", &mut bytes);
+```
+
+**New API (v0.3.x):** generic functions with codec types
+
+```rust
+use textcode::{Iso8859_5, decode, encode};
+
+let text = decode::<Iso8859_5>(b"\xbf\xe0\xd8\xd2\xd5\xe2!");
+
+let bytes = encode::<Iso8859_5>("Привет!");
+```
+
 ## Charsets
 
 - `UTF-8`
@@ -38,11 +64,9 @@ use textcode::{Iso8859_5, decode, encode};
 const UTF8: &str = "Привет!";
 const ISO8859_5: &[u8] = &[0xbf, 0xe0, 0xd8, 0xd2, 0xd5, 0xe2, 0x21];
 
-let mut dst: Vec<u8> = Vec::new();
-encode::<Iso8859_5>(UTF8, &mut dst);
-assert_eq!(dst.as_slice(), ISO8859_5);
+let text = decode::<Iso8859_5>(ISO8859_5);
+assert_eq!(text, UTF8);
 
-let mut dst = String::new();
-decode::<Iso8859_5>(ISO8859_5, &mut dst);
-assert_eq!(UTF8, dst.as_str());
+let bytes = encode::<Iso8859_5>(UTF8);
+assert_eq!(bytes, ISO8859_5);
 ```
