@@ -45,14 +45,14 @@ impl Textcode for Iso6937 {
 
                 if (b'A' ..= b'z').contains(&c) {
                     let offset = map_skip + usize::from(c - b'A');
-                    let u = DECODE_MAP_ISO6937[offset];
+                    let u = DECODE_MAP_ISO6937[offset] as u32;
                     written += write_utf8(dst, u)?;
                 } else {
                     written += write_decode_fallback(dst)?;
                 }
             } else if c >= 0xA0 {
                 let offset = usize::from(c) - 0xA0;
-                let u = DECODE_MAP_ISO6937[offset];
+                let u = DECODE_MAP_ISO6937[offset] as u32;
                 written += write_utf8(dst, u)?;
             } else {
                 written += write_decode_fallback(dst)?;

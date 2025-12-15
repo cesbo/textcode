@@ -58,7 +58,7 @@ impl Textcode for Gb2312 {
                 continue;
             }
 
-            let u = DECODE_MAP_GB2312[offset];
+            let u = DECODE_MAP_GB2312[offset] as u32;
             written += write_utf8(dst, u)?;
         }
 

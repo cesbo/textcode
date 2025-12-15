@@ -15,7 +15,7 @@ fn decode_inner<W: Write>(src: &[u8], dst: &mut W, map: &[u16]) -> std::io::Resu
             written += write_ascii(dst, c)?;
         } else if c >= 0xA0 {
             let offset = c as usize - 0xA0;
-            let u = map[offset];
+            let u = map[offset] as u32;
             written += write_utf8(dst, u)?;
         }
     }

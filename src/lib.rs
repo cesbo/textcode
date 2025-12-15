@@ -7,6 +7,8 @@
 //! textcode is a library for text encoding/decoding. Supports next charsets:
 //!
 //! - `UTF-8`
+//! - `UTF-16BE` - UTF-16 Big Endian
+//! - `UTF-16LE` - UTF-16 Little Endian
 //! - `iso-6937` - Latin superset of ISO/IEC 6937 with addition of the Euro symbol
 //! - `iso-8859-1` - Western European
 //! - `iso-8859-2` - Central European
@@ -47,12 +49,14 @@ mod utils;
 
 mod gb2312;
 mod iso6937;
+mod utf16;
 mod utf8;
 
 pub use gb2312::Gb2312;
 pub use iso6937::Iso6937;
 pub use iso8859::*;
 pub use utf8::Utf8;
+pub use utf16::Utf16;
 pub(crate) use utils::*;
 
 /// Trait for text encoding/decoding implementations.
