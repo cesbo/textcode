@@ -26,6 +26,7 @@
 //! - `iso-8859-15` - Western European
 //! - `iso-8859-16` - South-Eastern European
 //! - `gb2312` - Simplified Chinese
+//! - `geo` - proprietary DVB single-byte Georgian encoding
 //!
 //! [Read more...](https://github.com/cesbo/textcode)
 //!
