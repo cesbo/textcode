@@ -1,7 +1,11 @@
 use textcode::dvb::{
     Charset,
+    DvbText,
+    DvbTextRef,
+    Error,
     decode,
     decode_to_slice,
+    decode_with,
     encode,
     encode_to_slice,
 };
@@ -184,4 +188,246 @@ fn test_dvb_encode_to_slice() {
     let mut small_buf = [0u8; 7];
     let len = encode_to_slice("Привет!", Charset::Iso8859_5, &mut small_buf);
     assert_eq!(len, 0);
+}
+
+#[test]
+fn test_dvb_from_header_table() {
+    // Single-byte selectors
+    let rows: &[(u8, Charset)] = &[
+        (0x01, Charset::Iso8859_5),
+        (0x02, Charset::Iso8859_6),
+        (0x03, Charset::Iso8859_7),
+        (0x04, Charset::Iso8859_8),
+        (0x05, Charset::Iso8859_9),
+        (0x06, Charset::Iso8859_10),
+        (0x07, Charset::Iso8859_11),
+        (0x09, Charset::Iso8859_13),
+        (0x0A, Charset::Iso8859_14),
+        (0x0B, Charset::Iso8859_15),
+        (0x11, Charset::Utf16),
+        (0x13, Charset::Gb2312),
+        (0x15, Charset::Utf8),
+        (0x1E, Charset::Geo),
+    ];
+    for &(sel, charset) in rows {
+        let data = [sel, 0x41, 0x42];
+        assert_eq!(
+            Charset::from_header(&data),
+            Ok((charset, &data[1 ..])),
+            "selector {:#04X}",
+            sel
+        );
+    }
+
+    // Three-byte ISO-8859-X selectors
+    let rows: &[(u8, Charset)] = &[
+        (0x01, Charset::Iso8859_1),
+        (0x02, Charset::Iso8859_2),
+        (0x03, Charset::Iso8859_3),
+        (0x04, Charset::Iso8859_4),
+        (0x05, Charset::Iso8859_5),
+        (0x06, Charset::Iso8859_6),
+        (0x07, Charset::Iso8859_7),
+        (0x08, Charset::Iso8859_8),
+        (0x09, Charset::Iso8859_9),
+        (0x0A, Charset::Iso8859_10),
+        (0x0B, Charset::Iso8859_11),
+        (0x0D, Charset::Iso8859_13),
+        (0x0E, Charset::Iso8859_14),
+        (0x0F, Charset::Iso8859_15),
+        (0x10, Charset::Iso8859_16),
+    ];
+    for &(part, charset) in rows {
+        let data = [0x10, 0x00, part, 0x41, 0x42];
+        assert_eq!(
+            Charset::from_header(&data),
+            Ok((charset, &data[3 ..])),
+            "part {:#04X}",
+            part
+        );
+    }
+}
+
+#[test]
+fn test_dvb_from_header_iso6937() {
+    // Empty input
+    assert_eq!(Charset::from_header(&[]), Ok((Charset::Iso6937, &[][..])));
+
+    // Explicit 0x00 selector is stripped
+    let data = [0x00, b'H', b'i'];
+    assert_eq!(Charset::from_header(&data), Ok((Charset::Iso6937, &data[1 ..])));
+
+    // 0x20 and above: the first byte is text
+    let data = [0x20, b'H', b'i'];
+    assert_eq!(Charset::from_header(&data), Ok((Charset::Iso6937, &data[..])));
+    let data = [0xFF, b'H', b'i'];
+    assert_eq!(Charset::from_header(&data), Ok((Charset::Iso6937, &data[..])));
+}
+
+#[test]
+fn test_dvb_from_header_errors() {
+    // 0x10 needs two more bytes
+    assert_eq!(Charset::from_header(&[0x10]), Err(Error::InvalidLength));
+    assert_eq!(Charset::from_header(&[0x10, 0x00]), Err(Error::InvalidLength));
+
+    // Unassigned ISO-8859-X parts
+    assert_eq!(Charset::from_header(&[0x10, 0x00, 0x0C]), Err(Error::InvalidCodepage));
+    assert_eq!(Charset::from_header(&[0x10, 0x00, 0x00]), Err(Error::InvalidCodepage));
+    assert_eq!(Charset::from_header(&[0x10, 0x00, 0x11]), Err(Error::InvalidCodepage));
+    assert_eq!(Charset::from_header(&[0x10, 0x01, 0x01]), Err(Error::InvalidCodepage));
+
+    // Undefined selectors
+    for sel in [0x08, 0x0C, 0x0D, 0x0E, 0x0F, 0x12, 0x14, 0x16, 0x1D, 0x1F] {
+        assert_eq!(
+            Charset::from_header(&[sel, 0x41]),
+            Err(Error::InvalidCodepage),
+            "selector {:#04X}",
+            sel
+        );
+    }
+
+    // Selector errors make the whole decode empty
+    assert_eq!(decode([0x1F, b'H', b'i']), "");
+    let mut buf = [0u8; 8];
+    assert_eq!(decode_to_slice([0x10, 0x00], &mut buf), 0);
+}
+
+#[test]
+fn test_dvb_error_display() {
+    assert_eq!(Error::InvalidLength.to_string(), "Invalid length of input data");
+    assert_eq!(Error::InvalidCodepage.to_string(), "Invalid or unsupported codepage");
+    let _: &dyn std::error::Error = &Error::InvalidLength;
+}
+
+#[test]
+fn test_dvb_decode_with() {
+    // Headerless bytes decoded with an explicit charset
+    let cyr = [0xbf, 0xe0, 0xd8, 0xd2, 0xd5, 0xe2, 0x21];
+    assert_eq!(decode_with(cyr, Charset::Iso8859_5), "Привет!");
+    assert_eq!(decode_with(b"Hello", Charset::Iso6937), "Hello");
+    assert_eq!(decode_with([0x00, 0x48, 0x00, 0x69], Charset::Utf16), "Hi");
+    assert_eq!(decode_with("こんにちは".as_bytes(), Charset::Utf8), "こんにちは");
+    assert_eq!(decode_with([0xE1, 0xD0, 0xE5], Charset::Geo), "საქ");
+    assert_eq!(decode_with(b"", Charset::Gb2312), "");
+
+    // No header interpretation: a selector byte is treated as text
+    assert_eq!(decode_with([0x15, 0x41], Charset::Iso8859_1), "\u{15}A");
+}
+
+#[test]
+fn test_dvb_text_display() {
+    assert_eq!(DvbText::from(&b"Menu"[..]).to_string(), "Menu");
+    assert_eq!(DvbText::default().to_string(), "");
+    // A truncated charset selector is undecodable and displays as empty
+    assert_eq!(DvbText::from(&[0x10][..]).to_string(), "");
+    assert_eq!(DvbText::from(vec![0x1F, b'X']).to_string(), "");
+    assert_eq!(
+        DvbText::from(vec![0x01, 0xbf, 0xe0, 0xd8, 0xd2, 0xd5, 0xe2, 0x21]).to_string(),
+        "Привет!"
+    );
+}
+
+#[test]
+fn test_dvb_text_debug() {
+    assert_eq!(format!("{:?}", DvbText::from(&b"Menu"[..])), "\"Menu\"");
+    assert_eq!(format!("{:?}", DvbText::default()), "\"\"");
+    assert_eq!(format!("{:?}", DvbText::from(&[0x10][..])), "DvbText([10])");
+    assert_eq!(format!("{:?}", DvbText::from(&[0x1F, 0xAB][..])), "DvbText([1F, AB])");
+}
+
+#[test]
+fn test_dvb_text_bytes() {
+    let text = DvbText::from(vec![0x15, b'a']);
+    assert_eq!(text.as_bytes(), &[0x15, b'a']);
+    assert!(!text.is_empty());
+    assert_eq!(text.clone().into_bytes(), vec![0x15, b'a']);
+
+    let empty = DvbText::default();
+    assert!(empty.is_empty());
+    assert_eq!(empty.as_bytes(), &[]);
+    assert_eq!(empty, DvbText::from(Vec::new()));
+
+    // Raw bytes are kept even when undecodable
+    let raw = DvbText::from(&[0x1F, 0x00][..]);
+    assert_eq!(raw.as_bytes(), &[0x1F, 0x00]);
+    assert_eq!(raw.as_text(), Err(Error::InvalidCodepage));
+}
+
+#[test]
+fn test_dvb_text_encode_roundtrip() {
+    let text = DvbText::encode("Привет!", Charset::Iso8859_5);
+    assert_eq!(text.as_bytes(), &[0x01, 0xbf, 0xe0, 0xd8, 0xd2, 0xd5, 0xe2, 0x21]);
+    assert_eq!(text.to_string(), "Привет!");
+    let text_ref = text.as_text().unwrap();
+    assert_eq!(text_ref.charset(), Charset::Iso8859_5);
+    assert_eq!(text_ref.to_text(), text);
+
+    let text = DvbText::encode("Hello", Charset::Iso6937);
+    assert_eq!(text.as_bytes(), b"Hello");
+    assert_eq!(text.to_string(), "Hello");
+
+    // Empty string encodes to no bytes at all
+    let text = DvbText::encode("", Charset::Utf8);
+    assert!(text.is_empty());
+    assert_eq!(text, DvbText::default());
+}
+
+#[test]
+fn test_dvb_text_ref_utf16() {
+    let data = [0x11, 0x00, 0x48, 0x00, 0x69];
+    let text = DvbTextRef::try_from(&data[..]).unwrap();
+    assert_eq!(text.charset(), Charset::Utf16);
+    assert_eq!(text.as_bytes(), &data);
+    assert_eq!(text.text(), &data[1 ..]);
+    assert_eq!(text.decode(), "Hi");
+    assert_eq!(text.to_string(), "Hi");
+    assert_eq!(format!("{:?}", text), "\"Hi\"");
+    assert_eq!(text.to_text(), DvbText::from(&data[..]));
+}
+
+#[test]
+fn test_dvb_text_ref_iso6937_no_header() {
+    let data = b"Hello";
+    let text = DvbTextRef::try_from(&data[..]).unwrap();
+    assert_eq!(text.charset(), Charset::Iso6937);
+    assert_eq!(text.as_bytes(), data);
+    assert_eq!(text.text(), data);
+    assert_eq!(text.decode(), "Hello");
+
+    // Explicit 0x00 selector is stripped from text()
+    let data = [0x00, b'H', b'i'];
+    let text = DvbTextRef::try_from(&data[..]).unwrap();
+    assert_eq!(text.charset(), Charset::Iso6937);
+    assert_eq!(text.as_bytes(), &data);
+    assert_eq!(text.text(), b"Hi");
+    assert_eq!(text.decode(), "Hi");
+
+    // Empty input
+    let text = DvbTextRef::try_from(&[][..]).unwrap();
+    assert_eq!(text.charset(), Charset::Iso6937);
+    assert_eq!(text.text(), &[]);
+    assert_eq!(text.decode(), "");
+}
+
+#[test]
+fn test_dvb_text_ref_decode_with() {
+    // Three-byte selector, payload re-read with another charset
+    let data = [0x10, 0x00, 0x01, 0xbf, 0xe0, 0xd8, 0xd2, 0xd5, 0xe2, 0x21];
+    let text = DvbTextRef::try_from(&data[..]).unwrap();
+    assert_eq!(text.charset(), Charset::Iso8859_1);
+    assert_eq!(text.text(), &data[3 ..]);
+    assert_eq!(text.decode_with(Charset::Iso8859_5), "Привет!");
+    assert_ne!(text.decode(), "Привет!");
+
+    // No-header text re-read with another charset keeps the first byte
+    let data = [0xbf, 0xe0, 0xd8, 0xd2, 0xd5, 0xe2, 0x21];
+    let text = DvbTextRef::try_from(&data[..]).unwrap();
+    assert_eq!(text.decode_with(Charset::Iso8859_5), "Привет!");
+}
+
+#[test]
+fn test_dvb_text_ref_errors() {
+    assert_eq!(DvbTextRef::try_from(&[0x10][..]).unwrap_err(), Error::InvalidLength);
+    assert_eq!(DvbTextRef::try_from(&[0x10, 0x00, 0x0C][..]).unwrap_err(), Error::InvalidCodepage);
+    assert_eq!(DvbTextRef::try_from(&[0x1F, b'A'][..]).unwrap_err(), Error::InvalidCodepage);
 }

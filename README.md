@@ -2,72 +2,109 @@
 
 [![docs](https://docs.rs/textcode/badge.svg)](https://docs.rs/textcode)
 
-## Intro
+Text encoding and decoding between legacy charsets and UTF-8, plus DVB text
+(ETSI EN 300 468 Annex A) with charset selectors.
 
-Textcode is a library for text encoding/decoding.
+Conversion is non-strict: bytes without a mapping decode to U+FFFD, characters
+without a mapping encode to `?`.
 
-The library uses non-strict conversion: invalid or unmappable characters are replaced with `?`.
+## Charsets
 
-## ⚠️ Breaking change in v0.3.0
+- `Utf8`
+- `Utf16` - decodes BE and LE with a BOM, encodes BE without a BOM
+- `Iso6937` - Latin superset of ISO/IEC 6937 with the Euro sign
+- `Iso8859_1` - Western European
+- `Iso8859_2` - Central European
+- `Iso8859_3` - South European
+- `Iso8859_4` - North European
+- `Iso8859_5` - Cyrillic
+- `Iso8859_6` - Arabic
+- `Iso8859_7` - Greek
+- `Iso8859_8` - Hebrew
+- `Iso8859_9` - Turkish
+- `Iso8859_10` - Nordic
+- `Iso8859_11` - Thai
+- `Iso8859_13` - Baltic Rim
+- `Iso8859_14` - Celtic
+- `Iso8859_15` - Western European
+- `Iso8859_16` - South-Eastern European
+- `Gb2312` - Simplified Chinese
+- `Geo` - DVB single-byte Georgian encoding (not part of EN 300 468)
 
-The library API has been completely redesigned:
+## Usage
 
-**Old API (v0.2.x):** module-based functions
-
-```rust
-use textcode::iso8859_5;
-
-let mut text = String::new();
-iso8859_5::decode(b"\xbf\xe0\xd8\xd2\xd5\xe2!", &mut text);
-
-let mut bytes = Vec::new();
-iso8859_5::encode("Привет!", &mut bytes);
-```
-
-**New API (v0.3.x):** generic functions with codec types
+Every charset is a type implementing the `Textcode` trait; the generic
+functions pick the codec by type parameter:
 
 ```rust
 use textcode::{Iso8859_5, decode, encode};
 
 let text = decode::<Iso8859_5>(b"\xbf\xe0\xd8\xd2\xd5\xe2!");
+assert_eq!(text, "Привет!");
 
 let bytes = encode::<Iso8859_5>("Привет!");
+assert_eq!(bytes, b"\xbf\xe0\xd8\xd2\xd5\xe2!");
 ```
 
-## Charsets
-
-- `UTF-8`
-- `UTF-16` - Decoding BE and LE with BOM, encoding BE without BOM
-- `iso-6937` - Latin superset of ISO/IEC 6937 with Euro and letters with diacritics
-- `iso-8859-1` - Western European
-- `iso-8859-2` - Central European
-- `iso-8859-3` - South European
-- `iso-8859-4` - North European
-- `iso-8859-5` - Cyrillic
-- `iso-8859-6` - Arabic
-- `iso-8859-7` - Greek
-- `iso-8859-8` - Hebrew
-- `iso-8859-9` - Turkish
-- `iso-8859-10` - Nordic
-- `iso-8859-11` - Thai
-- `iso-8859-13` - Baltic Rim
-- `iso-8859-14` - Celtic
-- `iso-8859-15` - Western European
-- `iso-8859-16` - South-Eastern European
-- `gb2312` - Simplified Chinese
-- `Geo` - DVB single-byte Georgian character encoding (Magti TV)
-
-## Example
+`decode_to_slice` and `encode_to_slice` write into a caller-provided buffer
+and return the number of bytes written:
 
 ```rust
-use textcode::{Iso8859_5, decode, encode};
+use textcode::{Utf8, decode_to_slice};
 
-const UTF8: &str = "Привет!";
-const ISO8859_5: &[u8] = &[0xbf, 0xe0, 0xd8, 0xd2, 0xd5, 0xe2, 0x21];
-
-let text = decode::<Iso8859_5>(ISO8859_5);
-assert_eq!(text, UTF8);
-
-let bytes = encode::<Iso8859_5>(UTF8);
-assert_eq!(bytes, ISO8859_5);
+let mut buf = [0u8; 16];
+let len = decode_to_slice::<Utf8>(b"abc", &mut buf);
+assert_eq!(&buf[.. len], b"abc");
 ```
+
+## DVB text
+
+The `dvb` module handles EN 300 468 Annex A text, where the first bytes select
+the charset:
+
+| Selector                       | Charset                    |
+|--------------------------------|----------------------------|
+| `0x20`-`0xFF` (none) or `0x00` | `Iso6937`                  |
+| `0x01`-`0x0B`                  | `Iso8859_5`-`Iso8859_15`   |
+| `0x10 0x00 NN`                 | `Iso8859_NN` (`NN` = 1-16) |
+| `0x11`                         | `Utf16` (big endian)       |
+| `0x13`                         | `Gb2312`                   |
+| `0x15`                         | `Utf8`                     |
+| `0x1E`                         | `Geo`                      |
+
+```rust
+use textcode::dvb::{self, Charset};
+
+// decoding follows the selector
+assert_eq!(dvb::decode(b"\x01\xbf\xe0\xd8\xd2\xd5\xe2!"), "Привет!");
+
+// encoding emits the selector for the chosen charset
+assert_eq!(dvb::encode("Привет!", Charset::Iso8859_5), b"\x01\xbf\xe0\xd8\xd2\xd5\xe2!");
+```
+
+`DvbText` owns raw DVB bytes as they come off the wire and is never validated
+on construction; `DvbTextRef` is a borrowed view with a verified selector.
+Both decode through `Display`:
+
+```rust
+use textcode::dvb::{Charset, DvbText, DvbTextRef};
+
+let text = DvbText::from(&b"\x15Menu"[..]);
+assert_eq!(text.to_string(), "Menu");
+
+let text_ref = DvbTextRef::try_from(text.as_bytes()).unwrap();
+assert_eq!(text_ref.charset(), Charset::Utf8);
+assert_eq!(text_ref.text(), b"Menu");
+
+// an explicit charset overrides the selector
+assert_eq!(text_ref.decode_with(Charset::Iso8859_1), "Menu");
+
+// an undecodable selector displays as empty, the bytes stay reachable
+let bad = DvbText::from(&b"\x1f?"[..]);
+assert_eq!(bad.to_string(), "");
+assert_eq!(bad.as_bytes(), b"\x1f?");
+```
+
+## License
+
+MIT
