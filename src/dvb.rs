@@ -12,6 +12,11 @@
 //! - `0x1E`: proprietary Georgian mapping (not part of EN 300 468)
 //! - `0x00` or `0x20`-`0xFF`: ISO-6937 (default)
 //!
+//! Control codes (EN 300 468 Annex A.1) in the single-byte tables are not text: `0x00`-`0x1F` and
+//! `0x80`-`0x9F` are dropped on decode, except `0x8A` (CR/LF) and a bare `0x0A`, which become `\n`.
+//! The multi-byte tables (UTF-16, GB2312, UTF-8) carry the same codes at `U+E080`-`U+E09F` (Annex
+//! A.2); they are passed through unchanged.
+//!
 //! Types:
 //! - [`Charset`]: character code table, [`Charset::from_header`] splits the selector from the text
 //! - [`DvbTextRef`]: borrowed DVB text with a valid selector
@@ -247,28 +252,42 @@ fn encode_inner<W: Write>(src: &str, charset: Charset, dst: &mut W) -> std::io::
     }
 }
 
+/// Decodes a single-byte table without the Annex A.1 control codes; the plain charset decoders
+/// stay byte-faithful for non-DVB callers
+fn decode_single_byte<T: Textcode, W: Write>(src: &[u8], dst: &mut W) -> std::io::Result<usize> {
+    let text: Vec<u8> = src
+        .iter()
+        .filter_map(|&c| match c {
+            0x0A | 0x8A => Some(b'\n'),
+            0x00 ..= 0x1F | 0x80 ..= 0x9F => None,
+            c => Some(c),
+        })
+        .collect();
+    T::decode(&text, dst)
+}
+
 fn decode_charset<W: Write>(src: &[u8], charset: Charset, dst: &mut W) -> std::io::Result<usize> {
     match charset {
-        Charset::Iso6937 => Iso6937::decode(src, dst),
-        Charset::Iso8859_1 => Iso8859_1::decode(src, dst),
-        Charset::Iso8859_2 => Iso8859_2::decode(src, dst),
-        Charset::Iso8859_3 => Iso8859_3::decode(src, dst),
-        Charset::Iso8859_4 => Iso8859_4::decode(src, dst),
-        Charset::Iso8859_5 => Iso8859_5::decode(src, dst),
-        Charset::Iso8859_6 => Iso8859_6::decode(src, dst),
-        Charset::Iso8859_7 => Iso8859_7::decode(src, dst),
-        Charset::Iso8859_8 => Iso8859_8::decode(src, dst),
-        Charset::Iso8859_9 => Iso8859_9::decode(src, dst),
-        Charset::Iso8859_10 => Iso8859_10::decode(src, dst),
-        Charset::Iso8859_11 => Iso8859_11::decode(src, dst),
-        Charset::Iso8859_13 => Iso8859_13::decode(src, dst),
-        Charset::Iso8859_14 => Iso8859_14::decode(src, dst),
-        Charset::Iso8859_15 => Iso8859_15::decode(src, dst),
-        Charset::Iso8859_16 => Iso8859_16::decode(src, dst),
+        Charset::Iso6937 => decode_single_byte::<Iso6937, W>(src, dst),
+        Charset::Iso8859_1 => decode_single_byte::<Iso8859_1, W>(src, dst),
+        Charset::Iso8859_2 => decode_single_byte::<Iso8859_2, W>(src, dst),
+        Charset::Iso8859_3 => decode_single_byte::<Iso8859_3, W>(src, dst),
+        Charset::Iso8859_4 => decode_single_byte::<Iso8859_4, W>(src, dst),
+        Charset::Iso8859_5 => decode_single_byte::<Iso8859_5, W>(src, dst),
+        Charset::Iso8859_6 => decode_single_byte::<Iso8859_6, W>(src, dst),
+        Charset::Iso8859_7 => decode_single_byte::<Iso8859_7, W>(src, dst),
+        Charset::Iso8859_8 => decode_single_byte::<Iso8859_8, W>(src, dst),
+        Charset::Iso8859_9 => decode_single_byte::<Iso8859_9, W>(src, dst),
+        Charset::Iso8859_10 => decode_single_byte::<Iso8859_10, W>(src, dst),
+        Charset::Iso8859_11 => decode_single_byte::<Iso8859_11, W>(src, dst),
+        Charset::Iso8859_13 => decode_single_byte::<Iso8859_13, W>(src, dst),
+        Charset::Iso8859_14 => decode_single_byte::<Iso8859_14, W>(src, dst),
+        Charset::Iso8859_15 => decode_single_byte::<Iso8859_15, W>(src, dst),
+        Charset::Iso8859_16 => decode_single_byte::<Iso8859_16, W>(src, dst),
         Charset::Utf16 => Utf16::decode(src, dst),
         Charset::Gb2312 => Gb2312::decode(src, dst),
         Charset::Utf8 => Utf8::decode(src, dst),
-        Charset::Geo => Geo::decode(src, dst),
+        Charset::Geo => decode_single_byte::<Geo, W>(src, dst),
     }
 }
 

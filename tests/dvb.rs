@@ -310,8 +310,40 @@ fn test_dvb_decode_with() {
     assert_eq!(decode_with([0xE1, 0xD0, 0xE5], Charset::Geo), "საქ");
     assert_eq!(decode_with(b"", Charset::Gb2312), "");
 
-    // No header interpretation: a selector byte is treated as text
-    assert_eq!(decode_with([0x15, 0x41], Charset::Iso8859_1), "\u{15}A");
+    // No header interpretation: a selector byte is a control code in the text
+    assert_eq!(decode_with([0x15, 0x41], Charset::Iso8859_1), "A");
+    assert_eq!(decode_with([0x01, 0xbf], Charset::Iso8859_1), "\u{bf}");
+}
+
+#[test]
+fn test_dvb_control_codes() {
+    // network_name_descriptor captured on 19.2E 11464 H, NUL padded
+    assert_eq!(decode(b"ASTRA 1\0"), "ASTRA 1");
+    assert_eq!(decode(b"\0ASTRA 1\0"), "ASTRA 1");
+
+    // Annex A.1: 0x8A is CR/LF, 0x86/0x87 emphasis, the rest of C0 and 0x80-0x9F reserved
+    assert_eq!(decode(b"a\x8Ab"), "a\nb");
+    assert_eq!(decode(b"a\nb"), "a\nb");
+    assert_eq!(decode(b"\x86a\x87"), "a");
+    assert_eq!(decode(b"\x01\x1F\x80\x85\x9Fa"), "a");
+
+    // Same rule in every single-byte table
+    let cyr = [0x01, 0xbf, 0xe0, 0x8A, 0x86, 0xd8, 0xd2, 0x87, 0x00, 0xd5, 0xe2, 0x21];
+    assert_eq!(decode(cyr), "Пр\nивет!");
+    assert_eq!(decode([0x10, 0x00, 0x01, 0x00, 0xbf, 0x8A]), "\u{bf}\n");
+    assert_eq!(decode([0x1E, 0xE1, 0x00, 0xD0, 0x8A, 0xE5]), "სა\nქ");
+
+    // Every decode entry point
+    let mut buf = [0u8; 8];
+    let len = decode_to_slice(b"a\0b", &mut buf);
+    assert_eq!(&buf[.. len], b"ab");
+    assert_eq!(decode_with(b"a\0\x8Ab", Charset::Iso6937), "a\nb");
+    assert_eq!(DvbTextRef::try_from(&b"a\0"[..]).unwrap().decode(), "a");
+    assert_eq!(DvbText::from(&b"\x01\xbf\0"[..]).to_string(), "П");
+
+    // The plain charset decoders stay byte-faithful
+    assert_eq!(textcode::decode::<textcode::Iso6937>(b"a\0"), "a\0");
+    assert_eq!(textcode::decode::<textcode::Iso8859_5>(b"a\x0A"), "a\n");
 }
 
 #[test]

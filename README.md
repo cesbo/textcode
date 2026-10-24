@@ -72,6 +72,10 @@ the charset:
 | `0x15`                         | `Utf8`                     |
 | `0x1E`                         | `Geo`                      |
 
+Decoding drops the Annex A.1 control codes of the single-byte tables (`0x00`-`0x1F`,
+`0x80`-`0x9F`); `0x8A` (CR/LF) and a bare `0x0A` become `\n`. The multi-byte tables
+carry the same codes at `U+E080`-`U+E09F` and pass them through unchanged.
+
 ```rust
 use textcode::dvb::{self, Charset};
 
